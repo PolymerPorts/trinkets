@@ -4,14 +4,17 @@ import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.TrinketsApi;
 import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.emi.trinkets.data.SlotLoader;
+import dev.emi.trinkets.poly.TrinketsFlatUI;
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
 import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.command.CommandManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +30,9 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 		resourceManagerHelper.registerReloadListener(EntitySlotLoader.INSTANCE);
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success)
 				-> EntitySlotLoader.INSTANCE.sync(server.getPlayerManager().getPlayerList()));
+		CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(CommandManager.literal("trinkets").executes((ctx) -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow())));
+		}));
 	}
 
 	@Override

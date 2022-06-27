@@ -18,17 +18,23 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
+import com.mojang.brigadier.StringReader;
 import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.data.SlotLoader.GroupData;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.minecraft.command.CommandRegistryWrapper;
+import net.minecraft.command.argument.ItemStringReader;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.registry.Registry;
 
 public class SlotLoader extends SinglePreparationResourceReloader<Map<String, GroupData>> implements IdentifiableResourceReloadListener {
 
@@ -135,9 +141,12 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 		private final Set<String> tooltipPredicates = new HashSet<>();
 		private String dropRule = DropRule.DEFAULT.toString();
 
+		private String iconItem = "minecraft:iron_chestplate";
+
+
 		SlotType create(String group, String name) {
 			Identifier finalIcon = new Identifier(icon);
-			finalIcon = new Identifier(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
+			//finalIcon = new Identifier(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
 			Set<Identifier> finalValidatorPredicates = validatorPredicates.stream().map(Identifier::new).collect(Collectors.toSet());
 			Set<Identifier> finalQuickMovePredicates = quickMovePredicates.stream().map(Identifier::new).collect(Collectors.toSet());
 			Set<Identifier> finalTooltipPredicates = tooltipPredicates.stream().map(Identifier::new).collect(Collectors.toSet());
@@ -153,7 +162,21 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 			if (amount == -1) {
 				amount = 1;
 			}
-			return new SlotType(group, name, order, amount, finalIcon, finalQuickMovePredicates, finalValidatorPredicates,
+
+			ItemStack iconItem;
+
+			try {
+				var decode = ItemStringReader.item(CommandRegistryWrapper.of(Registry.ITEM), new StringReader(this.iconItem));
+				var stack = new ItemStack(decode.item().value());
+
+				stack.setNbt(decode.nbt());
+
+				iconItem = stack;
+			} catch (Exception e) {
+				iconItem = Items.IRON_CHESTPLATE.getDefaultStack();
+			}
+
+			return new SlotType(group, name, order, amount, finalIcon, iconItem, finalQuickMovePredicates, finalValidatorPredicates,
 				finalTooltipPredicates, DropRule.valueOf(dropRule));
 		}
 
@@ -210,6 +233,8 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 					tooltipPredicates.add(jsonTooltipPredicate.getAsString());
 				}
 			}
+
+			this.iconItem = JsonHelper.getString(jsonObject, "icon_item", "minecraft:iron_chestplate");
 		}
 	}
 }

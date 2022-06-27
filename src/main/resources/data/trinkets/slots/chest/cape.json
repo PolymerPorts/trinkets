@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/cape",
+  "icon_item": "red_banner",
   "order": -256,
   "validator_predicates": ["trinkets:tag"]
 }

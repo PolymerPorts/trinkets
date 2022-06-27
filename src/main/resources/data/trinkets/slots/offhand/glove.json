@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/glove_mirrored",
+  "icon_item": "clay_ball",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

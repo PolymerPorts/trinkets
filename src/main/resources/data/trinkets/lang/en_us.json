@@ -14,7 +14,9 @@
 	"trinkets.slot.feet.aglet": "Aglet",
 	"trinkets.slot.feet.shoes": "Shoes",
 	"trinkets.slot.hand.glove": "Glove",
-	"trinkets.slot.offhand.glove": "Glove",
+	"trinkets.slot.offhand.glove": "Offhand Glove",
 	"trinkets.slot.hand.ring": "Ring",
-	"trinkets.slot.offhand.ring": "Ring"
+	"trinkets.slot.offhand.ring": "Offhand Ring",
+
+	"trinkets.name": "Trinkets"
 }

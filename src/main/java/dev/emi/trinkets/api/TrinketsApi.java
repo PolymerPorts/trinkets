@@ -2,7 +2,6 @@ package dev.emi.trinkets.api;
 
 import com.mojang.datafixers.util.Function3;
 import dev.emi.trinkets.TrinketsMain;
-import dev.emi.trinkets.TrinketsNetwork;
 import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.onyxstudios.cca.api.v3.component.ComponentKey;
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
@@ -15,9 +14,14 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 
 import java.util.HashMap;
@@ -63,16 +67,22 @@ public class TrinketsApi {
 	 */
 	public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
 		if (!entity.world.isClient) {
-			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-			buf.writeInt(entity.getId());
-			buf.writeString(ref.inventory().getSlotType().getGroup() + "/" + ref.inventory().getSlotType().getName());
-			buf.writeInt(ref.index());
-			if (entity instanceof ServerPlayerEntity player) {
-				ServerPlayNetworking.send(player, TrinketsNetwork.BREAK, buf);
+			if (entity.world instanceof ServerWorld world) {
+				for(int i = 0; i < 5; ++i) {
+					Vec3d vec3d = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
+					vec3d = vec3d.rotateX(-entity.getPitch() * 0.017453292F);
+					vec3d = vec3d.rotateY(-entity.getYaw() * 0.017453292F);
+					double d = (double)(-entity.getRandom().nextFloat()) * 0.6D - 0.3D;
+					Vec3d vec3d2 = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.3D, d, 0.6D);
+					vec3d2 = vec3d2.rotateX(-entity.getPitch() * 0.017453292F);
+					vec3d2 = vec3d2.rotateY(-entity.getYaw() * 0.017453292F);
+					vec3d2 = vec3d2.add(entity.getX(), entity.getEyeY(), entity.getZ());
+					world.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, 0, vec3d.x, vec3d.y + 0.05D, vec3d.z, 1);
+				}
+				if (!entity.isSilent()) {
+					world.playSoundFromEntity(null, entity, SoundEvents.ENTITY_ITEM_BREAK, entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
+				}
 			}
-			PlayerLookup.tracking(entity).forEach(watcher -> {
-				ServerPlayNetworking.send(watcher, TrinketsNetwork.BREAK, buf);
-			});
 		}
 	}
 

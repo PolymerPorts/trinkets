@@ -18,14 +18,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
-import dev.emi.trinkets.TrinketPlayerScreenHandler;
 import dev.emi.trinkets.TrinketsMain;
-import dev.emi.trinkets.TrinketsNetwork;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.data.SlotLoader.GroupData;
 import dev.emi.trinkets.data.SlotLoader.SlotData;
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
 import net.minecraft.entity.EntityType;
@@ -198,14 +195,9 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 	}
 
 	public void sync(ServerPlayerEntity playerEntity) {
-		PacketByteBuf buf = getSlotsPacket();
-		ServerPlayNetworking.send(playerEntity, TrinketsNetwork.SYNC_SLOTS, buf);
 	}
 
 	public void sync(List<? extends ServerPlayerEntity> players) {
-		PacketByteBuf buf = getSlotsPacket();
-		players.forEach(player -> ServerPlayNetworking.send(player, TrinketsNetwork.SYNC_SLOTS, buf));
-		players.forEach(player -> ((TrinketPlayerScreenHandler) player.playerScreenHandler).trinkets$updateTrinketSlots(true));
 	}
 
 	private PacketByteBuf getSlotsPacket() {

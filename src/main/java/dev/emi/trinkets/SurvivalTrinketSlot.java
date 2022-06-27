@@ -48,17 +48,6 @@ public class SurvivalTrinketSlot extends Slot implements TrinketSlot {
 	@Override
 	public boolean isEnabled() {
 		if (alwaysVisible) {
-			if (x < 0) {
-				if (trinketInventory.getComponent().getEntity().world.isClient) {
-					MinecraftClient client = MinecraftClient.getInstance();
-					Screen s = client.currentScreen;
-					if (s instanceof InventoryScreen screen) {
-						if (screen.getRecipeBookWidget().isOpen()) {
-							return false;
-						}
-					}
-				}
-			}
 			return true;
 		}
 		return isTrinketFocused();
@@ -66,11 +55,11 @@ public class SurvivalTrinketSlot extends Slot implements TrinketSlot {
 
 	@Override
 	public boolean isTrinketFocused() {
-		if (TrinketsClient.activeGroup == group) {
+		/*if (TrinketsClient.activeGroup == group) {
 			return slotOffset == 0 || TrinketsClient.activeType == type;
 		} else if (TrinketsClient.quickMoveGroup == group) {
 			return slotOffset == 0 || TrinketsClient.quickMoveType == type && TrinketsClient.quickMoveTimer > 0;
-		}
+		}*/
 		return false;
 	}
 

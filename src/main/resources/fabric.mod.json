@@ -32,9 +32,6 @@
 		"main": [
 			"dev.emi.trinkets.TrinketsMain"
 		],
-		"client": [
-			"dev.emi.trinkets.TrinketsClient"
-		],
 		"cardinal-components-entity": [
 			"dev.emi.trinkets.TrinketsMain"
 		]

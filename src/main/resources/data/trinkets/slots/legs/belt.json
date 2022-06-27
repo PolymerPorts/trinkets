@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/belt",
+  "icon_item": "netherite_leggings",
   "order": -1024,
   "validator_predicates": ["trinkets:tag"]
 }

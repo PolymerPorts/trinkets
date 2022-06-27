@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Deprecated
 public class TrinketRendererRegistry {
 
 	private static final Map<Item, TrinketRenderer> RENDERERS = new HashMap<>();

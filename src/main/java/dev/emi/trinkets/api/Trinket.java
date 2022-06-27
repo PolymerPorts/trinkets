@@ -3,12 +3,12 @@ package dev.emi.trinkets.api;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
-import dev.emi.trinkets.mixin.accessor.LivingEntityAccessor;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.LivingEntity;
@@ -17,7 +17,12 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 
 public interface Trinket {
@@ -127,7 +132,7 @@ public interface Trinket {
 	 * @param entity The entity that is breaking the stack
 	 */
 	default void onBreak(ItemStack stack, SlotReference slot, LivingEntity entity) {
-		((LivingEntityAccessor) entity).invokePlayEquipmentBreakEffects(stack);
+
 	}
 
 	default TrinketEnums.DropRule getDropRule(ItemStack stack, SlotReference slot, LivingEntity entity) {

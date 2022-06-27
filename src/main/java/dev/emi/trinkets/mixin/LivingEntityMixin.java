@@ -17,8 +17,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import dev.emi.trinkets.TrinketPlayerScreenHandler;
-import dev.emi.trinkets.TrinketsNetwork;
 import dev.emi.trinkets.api.SlotAttributes;
 import dev.emi.trinkets.api.SlotAttributes.SlotEntityAttribute;
 import dev.emi.trinkets.api.SlotType;
@@ -199,43 +197,6 @@ public abstract class LivingEntityMixin extends Entity {
 					}
 				}
 			});
-
-			if (!this.world.isClient) {
-				Set<TrinketInventory> inventoriesToSend = trinkets.getTrackingUpdates();
-
-				if (!contentUpdates.isEmpty() || !inventoriesToSend.isEmpty()) {
-					PacketByteBuf buf = PacketByteBufs.create();
-					buf.writeInt(entity.getId());
-					NbtCompound tag = new NbtCompound();
-
-					for (TrinketInventory trinketInventory : inventoriesToSend) {
-						tag.put(trinketInventory.getSlotType().getGroup() + "/" + trinketInventory.getSlotType().getName(), trinketInventory.getSyncTag());
-					}
-
-					buf.writeNbt(tag);
-					tag = new NbtCompound();
-
-					for (Map.Entry<String, ItemStack> entry : contentUpdates.entrySet()) {
-						tag.put(entry.getKey(), entry.getValue().writeNbt(new NbtCompound()));
-					}
-
-					buf.writeNbt(tag);
-
-					for (ServerPlayerEntity player : PlayerLookup.tracking(entity)) {
-						ServerPlayNetworking.send(player, TrinketsNetwork.SYNC_INVENTORY, buf);
-					}
-
-					if (entity instanceof ServerPlayerEntity serverPlayer) {
-						ServerPlayNetworking.send(serverPlayer, TrinketsNetwork.SYNC_INVENTORY, buf);
-
-						if (!inventoriesToSend.isEmpty()) {
-							((TrinketPlayerScreenHandler) serverPlayer.playerScreenHandler).trinkets$updateTrinketSlots(false);
-						}
-					}
-
-					inventoriesToSend.clear();
-				}
-			}
 
 			lastEquippedTrinkets.clear();
 			lastEquippedTrinkets.putAll(newlyEquippedTrinkets);

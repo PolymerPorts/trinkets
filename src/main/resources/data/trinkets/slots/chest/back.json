@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/back",
+  "icon_item": "diamond_chestplate",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

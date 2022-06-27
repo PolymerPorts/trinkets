@@ -14,7 +14,6 @@ import java.util.function.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import dev.emi.trinkets.TrinketPlayerScreenHandler;
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.entity.LivingEntity;
@@ -57,6 +56,11 @@ public class LivingEntityTrinketComponent implements TrinketComponent, AutoSynce
 	@Override
 	public Map<String, Map<String, TrinketInventory>> getInventory() {
 		return inventory;
+	}
+
+	@Override
+	public boolean shouldSyncWith(ServerPlayerEntity player) {
+		return false;
 	}
 
 	@Override
@@ -293,7 +297,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, AutoSynce
 			}
 
 			if (this.entity instanceof PlayerEntity player) {
-				((TrinketPlayerScreenHandler) player.playerScreenHandler).trinkets$updateTrinketSlots(false);
+				//((TrinketPlayerScreenHandler) player.playerScreenHandler).trinkets$updateTrinketSlots(false);
 			}
 		}
 	}

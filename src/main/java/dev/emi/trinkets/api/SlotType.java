@@ -1,7 +1,11 @@
 package dev.emi.trinkets.api;
 
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
+import dev.emi.trinkets.poly.ModelGenerator;
+import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
 import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -26,8 +30,15 @@ public class SlotType {
 	private final Set<Identifier> tooltipPredicates;
 	private final DropRule dropRule;
 
+	private final ItemStack itemIcon;
+
 	public SlotType(String group, String name, int order, int amount, Identifier icon, Set<Identifier> quickMovePredicates,
-			Set<Identifier> validatorPredicates, Set<Identifier> tooltipPredicates, DropRule dropRule) {
+					Set<Identifier> validatorPredicates, Set<Identifier> tooltipPredicates, DropRule dropRule) {
+		this(group, name, order, amount, icon, Items.IRON_CHESTPLATE.getDefaultStack(), quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);
+	}
+
+	public SlotType(String group, String name, int order, int amount, Identifier icon, ItemStack itemIcon, Set<Identifier> quickMovePredicates,
+					Set<Identifier> validatorPredicates, Set<Identifier> tooltipPredicates, DropRule dropRule) {
 		this.group = group;
 		this.name = name;
 		this.order = order;
@@ -37,6 +48,10 @@ public class SlotType {
 		this.validatorPredicates = validatorPredicates;
 		this.tooltipPredicates = tooltipPredicates;
 		this.dropRule = dropRule;
+
+		this.itemIcon = itemIcon.copy();
+		ModelGenerator.generate(icon);
+		this.itemIcon.getOrCreateNbt().putInt("CustomModelData", PolymerRPUtils.requestModel(this.itemIcon.getItem(), icon).value());
 	}
 
 	public String getGroup() {
@@ -107,6 +122,9 @@ public class SlotType {
 		}
 		tag.put("TooltipPredicates", tooltipPredicateList);
 		tag.putString("DropRule", dropRule.toString());
+
+		tag.put("PolyPort$icon", this.itemIcon.writeNbt(new NbtCompound()));
+
 		data.put("SlotData", tag);
 	}
 
@@ -141,7 +159,13 @@ public class SlotType {
 		if (TrinketEnums.DropRule.has(dropRuleName)) {
 			dropRule = TrinketEnums.DropRule.valueOf(dropRuleName);
 		}
-		return new SlotType(group, name, order, amount, icon, quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);
+
+		var itemIcon = ItemStack.fromNbt(slotData.getCompound("PolyPort$icon"));
+		if (itemIcon == ItemStack.EMPTY) {
+			itemIcon = Items.IRON_CHESTPLATE.getDefaultStack();
+		}
+
+		return new SlotType(group, name, order, amount, icon, itemIcon, quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);
 	}
 
 	@Override
@@ -155,5 +179,9 @@ public class SlotType {
 	@Override
 	public int hashCode() {
 		return Objects.hash(group, name);
+	}
+
+	public ItemStack getIconItem() {
+		return this.itemIcon.copy();
 	}
 }

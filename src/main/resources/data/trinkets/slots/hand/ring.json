@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/ring",
+  "icon_item": "gold_ingot",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

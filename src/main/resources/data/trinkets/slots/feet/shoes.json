@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/shoes",
+  "icon_item": "golden_boots",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

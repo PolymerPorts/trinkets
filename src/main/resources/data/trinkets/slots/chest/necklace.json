@@ -1,5 +1,6 @@
 {
   "icon": "trinkets:gui/slots/necklace",
+  "icon_item": "heart_of_the_sea",
   "order": -1024,
   "validator_predicates": ["trinkets:tag"]
 }
