@@ -1,15 +1,23 @@
 package dev.emi.trinkets.poly;
 
 import dev.emi.trinkets.SurvivalTrinketSlot;
+import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
+import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +40,12 @@ public class TrinketsFlatUI extends SimpleGui {
 
         this.inventories = new ArrayList<>();
         this.component.getInventory().values().stream().flatMap((x) -> x.values().stream()).forEachOrdered((x) -> this.inventories.add(0, x));
-        this.setTitle(Text.translatable("trinkets.name"));
+        this.setTitle(PolymerRPUtils.hasPack(player)
+                ? Text.empty().append(Text.literal("-0.")
+                        .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new Identifier(TrinketsMain.MOD_ID, "gui"))))
+                        .append(Text.translatable("trinkets.name"))
+                : Text.translatable("trinkets.name")
+        );
         this.drawLines();
         this.drawNavbar();
 
@@ -40,6 +53,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     public static int open(ServerPlayerEntity playerOrThrow) {
+        playClickSound(playerOrThrow);
         new TrinketsFlatUI(playerOrThrow);
         return 1;
     }
@@ -74,8 +88,10 @@ public class TrinketsFlatUI extends SimpleGui {
         var type = trinketInventory.getSlotType();
         this.cachedSize[index] = trinketInventory.size();
         this.currentlyDisplayed[index] = trinketInventory;
-        this.setSlot(index * 9 + 0, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation()));
+        this.setSlot(index * 9 + 0, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideFlags());
         this.setSlot(index * 9 + 1, Elements.FILLER);
+
+        boolean hasPack = PolymerRPUtils.hasPack(player);
 
         if (trinketInventory.size() < 7) {
             for (int i = 0; i < 6; i++) {
@@ -86,7 +102,11 @@ public class TrinketsFlatUI extends SimpleGui {
                 }
             }
 
-            this.setSlot(index * 9 + 8, Elements.FILLER);
+            if (hasPack) {
+                this.setSlot(index * 9 + 8, ItemStack.EMPTY);
+            } else {
+                this.setSlot(index * 9 + 8, Elements.FILLER);
+            }
         } else {
             for (int i = 0; i < 6; i++) {
                 if (subPage * 6 + i < trinketInventory.size()) {
@@ -97,7 +117,14 @@ public class TrinketsFlatUI extends SimpleGui {
             }
 
             this.setSlot(index * 9 + 8,
-                    new GuiElementBuilder(Items.LIGHT_BLUE_STAINED_GLASS_PANE).setName(Text.literal((this.subPage[index] + 1) + "/" + ((trinketInventory.size() - 1) / 6 + 1))).setCallback((x, y, z) -> {
+                    new GuiElementBuilder(Elements.SUBPAGE.item())
+                            .setCustomModelData(Elements.SUBPAGE.value())
+                            .setName(Text.empty()
+                                    .append(Text.literal("« ").formatted(Formatting.GRAY))
+                                    .append((this.subPage[index] + 1) + "/" + ((trinketInventory.size() - 1) / 6 + 1))
+                                    .append(Text.literal(" »").formatted(Formatting.GRAY))
+                            )
+                            .setCallback((x, y, z) -> {
                         if (y.isLeft) {
                             this.subPage[index] = this.subPage[index] - 1;
 
@@ -105,6 +132,8 @@ public class TrinketsFlatUI extends SimpleGui {
                                 this.subPage[index] = (trinketInventory.size() - 1) / 6;
                             }
                             this.drawLine(index, trinketInventory, this.subPage[index]);
+
+                            playClickSound(this.player);
                         } else if (y.isRight) {
                             this.subPage[index] = this.subPage[index] + 1;
 
@@ -113,6 +142,7 @@ public class TrinketsFlatUI extends SimpleGui {
                             }
                             this.drawLine(index, trinketInventory, this.subPage[index]);
 
+                            playClickSound(this.player);
                         }
                     })
             );
@@ -120,42 +150,66 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     private void drawNavbar() {
-        this.setSlot(5 * 9 + 0, Elements.FILLER_NAVBAR);
-        this.setSlot(5 * 9 + 1, Elements.FILLER_NAVBAR);
+        boolean addNavbarFiller = !PolymerRPUtils.hasPack(this.player);
 
-        this.setSlot(5 * 9 + 2, new GuiElementBuilder(Items.GREEN_STAINED_GLASS_PANE)
-                .setName(Text.translatable("createWorld.customize.custom.prev"))
-                .setCallback((x, y, z) -> {
-                    this.page -= 1;
+        if (this.inventories.size() > 5) {
 
-                    if (this.page < 0) {
-                        this.page = (this.inventories.size() - 1) / 5;
-                    }
+            if (addNavbarFiller) {
+                this.setSlot(5 * 9 + 0, Elements.FILLER_NAVBAR);
+                this.setSlot(5 * 9 + 1, Elements.FILLER_NAVBAR);
+            }
 
-                    Arrays.fill(this.subPage, 0);
-                    this.drawLines();
-                })
-        );
-        this.setSlot(5 * 9 + 3, Elements.FILLER_NAVBAR);
-        this.setSlot(5 * 9 + 4, Elements.FILLER_NAVBAR);
-        this.setSlot(5 * 9 + 5, Elements.FILLER_NAVBAR);
+            this.setSlot(5 * 9 + 2, new GuiElementBuilder(Elements.PREVIOUS.item())
+                    .setName(Text.translatable("createWorld.customize.custom.prev"))
+                    .setCustomModelData(Elements.PREVIOUS.value())
+                    .setCallback((x, y, z) -> {
+                        this.page -= 1;
 
-        this.setSlot(5 * 9 + 6, new GuiElementBuilder(Items.GREEN_STAINED_GLASS_PANE)
-                .setName(Text.translatable("createWorld.customize.custom.next"))
-                .setCallback((x, y, z) -> {
-                    this.page += 1;
+                        if (this.page < 0) {
+                            this.page = (this.inventories.size() - 1) / 5;
+                        }
 
-                    if (this.page > (this.inventories.size() - 1) / 5) {
-                        this.page = 0;
-                    }
+                        Arrays.fill(this.subPage, 0);
+                        this.drawLines();
+                        playClickSound(this.player);
+                    })
+            );
+            if (addNavbarFiller) {
+                this.setSlot(5 * 9 + 3, Elements.FILLER_NAVBAR);
+                this.setSlot(5 * 9 + 4, Elements.FILLER_NAVBAR);
+                this.setSlot(5 * 9 + 5, Elements.FILLER_NAVBAR);
+            }
 
-                    Arrays.fill(this.subPage, 0);
-                    this.drawLines();
-                })
-        );
+            this.setSlot(5 * 9 + 6, new GuiElementBuilder(Elements.NEXT.item())
+                    .setName(Text.translatable("createWorld.customize.custom.next"))
+                    .setCustomModelData(Elements.NEXT.value())
+                    .setCallback((x, y, z) -> {
+                        this.page += 1;
 
-        this.setSlot(5 * 9 + 7, Elements.FILLER_NAVBAR);
-        this.setSlot(5 * 9 + 8, Elements.FILLER_NAVBAR);
+                        if (this.page > (this.inventories.size() - 1) / 5) {
+                            this.page = 0;
+                        }
 
+                        Arrays.fill(this.subPage, 0);
+                        this.drawLines();
+                        playClickSound(this.player);
+                    })
+            );
+
+
+            if (addNavbarFiller) {
+                this.setSlot(5 * 9 + 7, Elements.FILLER_NAVBAR);
+                this.setSlot(5 * 9 + 8, Elements.FILLER_NAVBAR);
+            }
+        } else if (addNavbarFiller) {
+            for (int i = 0; i < 9; i++) {
+                this.setSlot(5 * 9 + i, Elements.FILLER_NAVBAR);
+            }
+        }
+    }
+
+
+    public static final void playClickSound(ServerPlayerEntity player) {
+        player.playSound(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, 0.7f, 1);
     }
 }

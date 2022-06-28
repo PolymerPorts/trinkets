@@ -1,8 +1,7 @@
 package dev.emi.trinkets.api;
 
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
-import dev.emi.trinkets.poly.ModelGenerator;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import dev.emi.trinkets.poly.GuiModels;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -50,8 +49,7 @@ public class SlotType {
 		this.dropRule = dropRule;
 
 		this.itemIcon = itemIcon.copy();
-		ModelGenerator.generate(icon);
-		this.itemIcon.getOrCreateNbt().putInt("CustomModelData", PolymerRPUtils.requestModel(this.itemIcon.getItem(), icon).value());
+		this.itemIcon.getOrCreateNbt().putInt("CustomModelData", GuiModels.getOrCreate(icon, this.itemIcon.getItem()).value());
 	}
 
 	public String getGroup() {

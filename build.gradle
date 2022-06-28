@@ -2,6 +2,7 @@ plugins {
 	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'io.github.juuxel.loom-quiltflower' version '1.7.1'
 	id 'maven-publish'
+	id "com.modrinth.minotaur" version "2.+"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -103,25 +104,47 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
-            afterEvaluate {
-                artifact remapJar
-            }
+			groupId = rootProject.maven_group
+			artifactId = project.archivesBaseName
+			version = project.version
+
+			from components.java
 		}
+
 	}
-    setupRepositories(repositories)
+
+	setupRepositories(repositories)
 }
 
 void setupRepositories(RepositoryHandler repositories) {
-	if (project.hasProperty("mavenUrl")) {
-        repositories.maven {
-            url project.mavenUrl
-            credentials {
-                username project.mavenUsername
-                password project.mavenPassword
-            }
-        }
-    }
+	def env = System.getenv()
+
+	if (env.MAVEN_URL) {
+		repositories.maven {
+			credentials {
+				username env.MAVEN_USERNAME
+				password env.MAVEN_PASSWORD
+			}
+			url env.MAVEN_URL
+		}
+	} else {
+		repositories.mavenLocal()
+	}
+}
+
+if (System.getenv("MODRINTH")) {
+	modrinth {
+		token = System.getenv("MODRINTH")
+		projectId = ''// The ID of your modrinth project, slugs will not work.
+		versionNumber = "" + version // The version of the mod to upload.
+		versionType = "beta"
+		uploadFile = remapJar // This links to a task that builds your mod jar and sets "uploadFile" to the mod jar.
+		gameVersions = [((String) project.minecraft_version)]
+		changelog = System.getenv("CHANGELOG")
+		loaders = ["fabric", "quilt"]
+	}
+
+	remapJar {
+		finalizedBy project.tasks.modrinth
+	}
 }
