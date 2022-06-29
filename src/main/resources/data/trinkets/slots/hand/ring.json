@@ -1,6 +1,6 @@
 {
   "icon": "trinkets:gui/slots/ring",
-  "icon_item": "gold_ingot",
+  "icon_item": "sunflower",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

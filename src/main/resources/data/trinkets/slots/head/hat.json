@@ -1,6 +1,6 @@
 {
   "icon": "trinkets:gui/slots/hat",
-  "icon_item": "chainmal_helmet",
+  "icon_item": "chainmail_helmet",
   "order": -512,
   "validator_predicates": ["trinkets:tag"]
 }

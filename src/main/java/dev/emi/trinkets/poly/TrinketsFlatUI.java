@@ -21,27 +21,45 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrinketsFlatUI extends SimpleGui {
+
+
     private final List<TrinketInventory> inventories;
     private final TrinketComponent component;
+    private final int displayPerPage;
 
 
     private int page = 0;
-    private final int[] subPage = new int[5];
-    private final int[] cachedSize = new int[5];
-    private final TrinketInventory[] currentlyDisplayed = new TrinketInventory[5];
+    private final int[] subPage;
+    private final int[] cachedSize;
+    private final TrinketInventory[] currentlyDisplayed;
+
+    private final boolean compact;
 
 
-    public TrinketsFlatUI(ServerPlayerEntity player) {
+    public TrinketsFlatUI(ServerPlayerEntity player, boolean compact) {
         super(ScreenHandlerType.GENERIC_9X6, player, false);
+        this.compact = compact;
         this.component = TrinketsApi.getTrinketComponent(player).get();
 
-        this.inventories = new ArrayList<>();
-        this.component.getInventory().values().stream().flatMap((x) -> x.values().stream()).forEachOrdered((x) -> this.inventories.add(0, x));
+        this.displayPerPage = compact ? 10 : 5;
+
+        this.subPage = new int[this.displayPerPage];
+        this.cachedSize = new int[this.displayPerPage];
+        this.currentlyDisplayed = new TrinketInventory[this.displayPerPage];
+
+        this.inventories = this.component.getInventory().entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> this.component.getGroups().get(e.getKey()).getOrder()))
+                .map((x) -> x.getValue())
+                .flatMap((x) -> x.values().stream().sorted(Comparator.comparingInt(a -> a.getSlotType().getOrder())))
+                .collect(Collectors.toList());
+
         this.setTitle(PolymerRPUtils.hasPack(player)
-                ? Text.empty().append(Text.literal("-0.")
+                ? Text.empty().append(Text.literal(compact ? "-1." : "-0.")
                         .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new Identifier(TrinketsMain.MOD_ID, "gui"))))
                         .append(Text.translatable("trinkets.name"))
                 : Text.translatable("trinkets.name")
@@ -52,20 +70,33 @@ public class TrinketsFlatUI extends SimpleGui {
         this.open();
     }
 
-    public static int open(ServerPlayerEntity playerOrThrow) {
-        playClickSound(playerOrThrow);
-        new TrinketsFlatUI(playerOrThrow);
+    public static int open(ServerPlayerEntity player) {
+        playClickSound(player);
+        new TrinketsFlatUI(player, TrinketsPoly.getIsCompact(player));
         return 1;
     }
 
     public void drawLines() {
-        for (int i = 0; i < 5; i++) {
-            var y = page * 5 + i;
+        if (this.compact && !PolymerRPUtils.hasPack(this.player)) {
+            for (int x = 0; x < 5; x++) {
+                this.setSlot(9 * x + 4, Elements.FILLER);
+            }
+        }
+
+        for (int i = 0; i < this.displayPerPage; i++) {
+            var y = page * this.displayPerPage + i;
             if (y < this.inventories.size()) {
                 drawLine(i, this.inventories.get(y), subPage[i]);
             } else {
-                for (int x = 0; x < 9; x++) {
-                    this.setSlot(i * 9 + x, Elements.FILLER);
+                if (this.compact) {
+                    int base = i / 2 * 9 + ((i % 2) * 5);
+                    for (int x = 0; x < 4; x++) {
+                        this.setSlot(base + x, Elements.FILLER);
+                    }
+                } else {
+                    for (int x = 0; x < 9; x++) {
+                        this.setSlot(i * 9 + x, Elements.FILLER);
+                    }
                 }
                 this.cachedSize[i] = 0;
                 this.currentlyDisplayed[i] = null;
@@ -75,7 +106,7 @@ public class TrinketsFlatUI extends SimpleGui {
 
     @Override
     public void onTick() {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < this.displayPerPage; i++) {
             if (this.currentlyDisplayed[i] != null && this.currentlyDisplayed[i].size() != this.cachedSize[i]) {
                 this.drawLine(i, this.currentlyDisplayed[i], this.subPage[i]);
             }
@@ -88,40 +119,48 @@ public class TrinketsFlatUI extends SimpleGui {
         var type = trinketInventory.getSlotType();
         this.cachedSize[index] = trinketInventory.size();
         this.currentlyDisplayed[index] = trinketInventory;
-        this.setSlot(index * 9 + 0, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideFlags());
-        this.setSlot(index * 9 + 1, Elements.FILLER);
+
+        var base = this.compact ? index / 2 * 9 + ((index % 2) * 5) : index * 9;
+        var invSize = this.compact ? 2 : 6;
+
+        int slot = 0;
+        this.setSlot(base + slot++, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideFlags());
+
+        if (!this.compact) {
+            this.setSlot(base + slot++, Elements.FILLER);
+        }
 
         boolean hasPack = PolymerRPUtils.hasPack(player);
 
-        if (trinketInventory.size() < 7) {
-            for (int i = 0; i < 6; i++) {
+        if (trinketInventory.size() <= invSize) {
+            for (int i = 0; i < invSize; i++) {
                 if (i < trinketInventory.size()) {
-                    this.setSlotRedirect(index * 9 + 2 + i, new SurvivalTrinketSlot(trinketInventory, i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
+                    this.setSlotRedirect(base + slot++, new SurvivalTrinketSlot(trinketInventory, i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
                 } else {
-                    this.setSlot(index * 9 + 2 + i, Elements.FILLER);
+                    this.setSlot(base + slot++, Elements.FILLER);
                 }
             }
 
             if (hasPack) {
-                this.setSlot(index * 9 + 8, ItemStack.EMPTY);
+                this.setSlot(base + slot++, ItemStack.EMPTY);
             } else {
-                this.setSlot(index * 9 + 8, Elements.FILLER);
+                this.setSlot(base + slot++, Elements.FILLER);
             }
         } else {
-            for (int i = 0; i < 6; i++) {
-                if (subPage * 6 + i < trinketInventory.size()) {
-                    this.setSlotRedirect(index * 9 + 2 + i, new SurvivalTrinketSlot(trinketInventory, subPage * 6 + i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
+            for (int i = 0; i < invSize; i++) {
+                if (subPage * invSize + i < trinketInventory.size()) {
+                    this.setSlotRedirect(base + slot++, new SurvivalTrinketSlot(trinketInventory, subPage * invSize + i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
                 } else {
-                    this.setSlot(index * 9 + 2 + i, Elements.FILLER);
+                    this.setSlot(base + slot++, Elements.FILLER);
                 }
             }
 
-            this.setSlot(index * 9 + 8,
+            this.setSlot(base + slot++,
                     new GuiElementBuilder(Elements.SUBPAGE.item())
                             .setCustomModelData(Elements.SUBPAGE.value())
                             .setName(Text.empty()
                                     .append(Text.literal("« ").formatted(Formatting.GRAY))
-                                    .append((this.subPage[index] + 1) + "/" + ((trinketInventory.size() - 1) / 6 + 1))
+                                    .append((this.subPage[index] + 1) + "/" + ((trinketInventory.size() - 1) / invSize + 1))
                                     .append(Text.literal(" »").formatted(Formatting.GRAY))
                             )
                             .setCallback((x, y, z) -> {
@@ -129,7 +168,7 @@ public class TrinketsFlatUI extends SimpleGui {
                             this.subPage[index] = this.subPage[index] - 1;
 
                             if (this.subPage[index] < 0) {
-                                this.subPage[index] = (trinketInventory.size() - 1) / 6;
+                                this.subPage[index] = (trinketInventory.size() - 1) / invSize;
                             }
                             this.drawLine(index, trinketInventory, this.subPage[index]);
 
@@ -137,7 +176,7 @@ public class TrinketsFlatUI extends SimpleGui {
                         } else if (y.isRight) {
                             this.subPage[index] = this.subPage[index] + 1;
 
-                            if (this.subPage[index] > (trinketInventory.size() - 1) / 6) {
+                            if (this.subPage[index] > (trinketInventory.size() - 1) / invSize) {
                                 this.subPage[index] = 0;
                             }
                             this.drawLine(index, trinketInventory, this.subPage[index]);
@@ -152,7 +191,7 @@ public class TrinketsFlatUI extends SimpleGui {
     private void drawNavbar() {
         boolean addNavbarFiller = !PolymerRPUtils.hasPack(this.player);
 
-        if (this.inventories.size() > 5) {
+        if (this.inventories.size() > this.displayPerPage) {
 
             if (addNavbarFiller) {
                 this.setSlot(5 * 9 + 0, Elements.FILLER_NAVBAR);
@@ -166,7 +205,7 @@ public class TrinketsFlatUI extends SimpleGui {
                         this.page -= 1;
 
                         if (this.page < 0) {
-                            this.page = (this.inventories.size() - 1) / 5;
+                            this.page = (this.inventories.size() - 1) / this.displayPerPage;
                         }
 
                         Arrays.fill(this.subPage, 0);
@@ -186,7 +225,7 @@ public class TrinketsFlatUI extends SimpleGui {
                     .setCallback((x, y, z) -> {
                         this.page += 1;
 
-                        if (this.page > (this.inventories.size() - 1) / 5) {
+                        if (this.page > (this.inventories.size() - 1) / this.displayPerPage) {
                             this.page = 0;
                         }
 

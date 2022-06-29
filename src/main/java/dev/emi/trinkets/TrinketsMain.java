@@ -6,9 +6,11 @@ import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.emi.trinkets.data.SlotLoader;
 import dev.emi.trinkets.poly.Elements;
 import dev.emi.trinkets.poly.TrinketsFlatUI;
+import dev.emi.trinkets.poly.TrinketsPoly;
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
 import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
+import eu.pb4.playerdata.api.PlayerDataApi;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -32,11 +34,7 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success)
 				-> EntitySlotLoader.INSTANCE.sync(server.getPlayerManager().getPlayerList()));
 
-		CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
-			dispatcher.register(CommandManager.literal("trinkets").executes((ctx) -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow())));
-		}));
-
-		Elements.FILLER.hashCode();
+		TrinketsPoly.init();
 	}
 
 	@Override

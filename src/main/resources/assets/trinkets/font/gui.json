@@ -15,6 +15,15 @@
             "chars": [
                 "0"
             ]
+        },
+        {
+            "type": "bitmap",
+            "file": "trinkets:gui/flat_gui_compact.png",
+            "ascent": 13,
+            "height": 256,
+            "chars": [
+                "1"
+            ]
         }
     ]
 }

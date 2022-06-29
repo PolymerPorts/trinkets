@@ -18,5 +18,7 @@
 	"trinkets.slot.hand.ring": "Ring",
 	"trinkets.slot.offhand.ring": "Offhand Ring",
 
-	"trinkets.name": "Trinkets"
+	"trinkets.name": "Trinkets",
+	"trinkets.command.compact.true": "Enabled compact ui",
+	"trinkets.command.compact.false": "Disabled compact ui"
 }
