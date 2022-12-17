@@ -21,6 +21,7 @@ import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
@@ -102,7 +103,7 @@ public interface Trinket {
 
 				if (!tag.contains("Slot", NbtType.STRING) || tag.getString("Slot")
 						.equals(slot.inventory().getSlotType().getGroup() + "/" + slot.inventory().getSlotType().getName())) {
-					Optional<EntityAttribute> optional = Registry.ATTRIBUTE
+					Optional<EntityAttribute> optional = Registries.ATTRIBUTE
 							.getOrEmpty(Identifier.tryParse(tag.getString("AttributeName")));
 
 					if (optional.isPresent()) {
@@ -132,7 +133,7 @@ public interface Trinket {
 	 * @param entity The entity that is breaking the stack
 	 */
 	default void onBreak(ItemStack stack, SlotReference slot, LivingEntity entity) {
-
+		((LivingEntityAccessor) entity).invokePlayEquipmentBreakEffects(stack);
 	}
 
 	default TrinketEnums.DropRule getDropRule(ItemStack stack, SlotReference slot, LivingEntity entity) {
