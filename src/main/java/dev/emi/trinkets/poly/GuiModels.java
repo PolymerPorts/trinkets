@@ -1,9 +1,9 @@
 package dev.emi.trinkets.poly;
 
 import dev.emi.trinkets.TrinketsMain;
-import eu.pb4.polymer.api.resourcepack.PolymerModelData;
-import eu.pb4.polymer.api.resourcepack.PolymerRPBuilder;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
@@ -21,16 +21,16 @@ public class GuiModels {
     public static PolymerModelData getOrCreate(Identifier icon, Item item) {
         if (init) {
             init = false;
-            PolymerRPUtils.addAssetSource(TrinketsMain.MOD_ID);
+            PolymerResourcePackUtils.addModAssets(TrinketsMain.MOD_ID);
 
-            PolymerRPUtils.RESOURCE_PACK_CREATION_EVENT.register(GuiModels::createFiles);
+            PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(GuiModels::createFiles);
         }
 
         MODELS.add(icon);
-        return MODEL_MAP.computeIfAbsent(item, i -> new HashMap<>()).computeIfAbsent(icon, i -> PolymerRPUtils.requestModel(item, icon));
+        return MODEL_MAP.computeIfAbsent(item, i -> new HashMap<>()).computeIfAbsent(icon, i -> PolymerResourcePackUtils.requestModel(item, icon));
     }
 
-    private static void createFiles(PolymerRPBuilder polymerRPBuilder) {
+    private static void createFiles(ResourcePackBuilder polymerRPBuilder) {
         for (var id : MODELS) {
             var json = """
                     {
@@ -49,7 +49,7 @@ public class GuiModels {
               {
               "parent": "minecraft:item/handheld",
               "textures": {
-                "layer0": "trinkets:gui/filler"
+                "layer0": "trinkets:gui/polybuttons/filler"
               },
               "display": {
                 "gui": {
@@ -60,7 +60,7 @@ public class GuiModels {
               }
             }
             """;
-            polymerRPBuilder.addData("assets/trinkets/models/gui/filler.json", json.getBytes(StandardCharsets.UTF_8));
+            polymerRPBuilder.addData("assets/trinkets/models/gui/polybuttons/filler.json", json.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

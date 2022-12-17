@@ -21,15 +21,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class TrinketsApi {
 					world.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, 0, vec3d.x, vec3d.y + 0.05D, vec3d.z, 1);
 				}
 				if (!entity.isSilent()) {
-					world.playSoundFromEntity(null, entity, SoundEvents.ENTITY_ITEM_BREAK, entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
+					world.playSoundFromEntity(null, entity, Registries.SOUND_EVENT.getEntry(SoundEvents.ENTITY_ITEM_BREAK), entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
 				}
 			}
 		}

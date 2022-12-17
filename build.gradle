@@ -60,10 +60,14 @@ dependencies {
 	modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
-	modImplementation include("eu.pb4:polymer:${project.polymer_version}")
+	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
 	modImplementation include("eu.pb4:player-data-api:${project.pda_version}")
 	modImplementation include("fr.catcore:server-translations-api:${project.translation_version}")
 
+
+	modLocalRuntime "eu.pb4:polymer-autohost:${project.polymer_version}"
+	modCompileOnly "eu.pb4:polymer-core:${project.polymer_version}"
+	modLocalRuntime "eu.pb4:polymer-core:${project.polymer_version}"
 
 	// Dev Runtime
 	testmodImplementation sourceSets.main.output

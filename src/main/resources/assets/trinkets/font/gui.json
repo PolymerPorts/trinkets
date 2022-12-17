@@ -9,7 +9,7 @@
         },
         {
             "type": "bitmap",
-            "file": "trinkets:gui/flat_gui.png",
+            "file": "trinkets:font_gui/flat_gui.png",
             "ascent": 13,
             "height": 256,
             "chars": [
@@ -18,7 +18,7 @@
         },
         {
             "type": "bitmap",
-            "file": "trinkets:gui/flat_gui_compact.png",
+            "file": "trinkets:font_gui/flat_gui_compact.png",
             "ascent": 13,
             "height": 256,
             "chars": [

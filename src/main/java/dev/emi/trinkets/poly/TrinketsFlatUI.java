@@ -5,7 +5,7 @@ import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.item.ItemStack;
@@ -58,7 +58,7 @@ public class TrinketsFlatUI extends SimpleGui {
                 .flatMap((x) -> x.values().stream().sorted(Comparator.comparingInt(a -> a.getSlotType().getOrder())))
                 .collect(Collectors.toList());
 
-        this.setTitle(PolymerRPUtils.hasPack(player)
+        this.setTitle(PolymerResourcePackUtils.hasPack(player)
                 ? Text.empty().append(Text.literal(compact ? "-1." : "-0.")
                         .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new Identifier(TrinketsMain.MOD_ID, "gui"))))
                         .append(Text.translatable("trinkets.name"))
@@ -77,7 +77,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     public void drawLines() {
-        if (this.compact && !PolymerRPUtils.hasPack(this.player)) {
+        if (this.compact && !PolymerResourcePackUtils.hasPack(this.player)) {
             for (int x = 0; x < 5; x++) {
                 this.setSlot(9 * x + 4, Elements.FILLER);
             }
@@ -130,7 +130,7 @@ public class TrinketsFlatUI extends SimpleGui {
             this.setSlot(base + slot++, Elements.FILLER);
         }
 
-        boolean hasPack = PolymerRPUtils.hasPack(player);
+        boolean hasPack = PolymerResourcePackUtils.hasPack(player);
 
         if (trinketInventory.size() <= invSize) {
             for (int i = 0; i < invSize; i++) {
@@ -189,7 +189,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     private void drawNavbar() {
-        boolean addNavbarFiller = !PolymerRPUtils.hasPack(this.player);
+        boolean addNavbarFiller = !PolymerResourcePackUtils.hasPack(this.player);
 
         if (this.inventories.size() > this.displayPerPage) {
 
@@ -249,6 +249,6 @@ public class TrinketsFlatUI extends SimpleGui {
 
 
     public static final void playClickSound(ServerPlayerEntity player) {
-        player.playSound(SoundEvents.UI_BUTTON_CLICK, SoundCategory.MASTER, 0.7f, 1);
+        player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 0.7f, 1);
     }
 }

@@ -24,17 +24,16 @@ import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.data.SlotLoader.GroupData;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.command.CommandRegistryWrapper;
 import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.SinglePreparationResourceReloader;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.Registry;
 
 public class SlotLoader extends SinglePreparationResourceReloader<Map<String, GroupData>> implements IdentifiableResourceReloadListener {
 
@@ -166,7 +165,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 			ItemStack iconItem;
 
 			try {
-				var decode = ItemStringReader.item(CommandRegistryWrapper.of(Registry.ITEM), new StringReader(this.iconItem));
+				var decode = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(this.iconItem));
 				var stack = new ItemStack(decode.item().value());
 
 				stack.setNbt(decode.nbt());
