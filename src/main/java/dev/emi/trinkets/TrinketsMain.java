@@ -56,9 +56,11 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 		TrinketsPoly.init();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
 			dispatcher.register(literal("trinkets")
-				.requires(source -> source.hasPermissionLevel(2))
+				.executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))
+				.then(CommandManager.literal("compact").executes(TrinketsPoly::toggleCompactCommand))
 				.then(
 					literal("set")
+					.requires(source -> source.hasPermissionLevel(2))
 					.then(
 						argument("group", string())
 						.then(

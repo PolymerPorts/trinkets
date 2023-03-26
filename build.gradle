@@ -62,7 +62,7 @@ dependencies {
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
 	modImplementation include("eu.pb4:player-data-api:${project.pda_version}")
-	modImplementation include("fr.catcore:server-translations-api:${project.translation_version}")
+	modImplementation include("xyz.nucleoid:server-translations-api:${project.translation_version}")
 
 
 	modLocalRuntime "eu.pb4:polymer-autohost:${project.polymer_version}"
