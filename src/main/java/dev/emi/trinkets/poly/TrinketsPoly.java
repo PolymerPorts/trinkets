@@ -10,6 +10,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import java.util.function.Supplier;
+
 public class TrinketsPoly {
     public static final PolyConfig CONFIG = PolyConfig.loadOrCreateConfig();
     public static final Identifier COMPACT_SETTING = new Identifier(TrinketsMain.MOD_ID, "compact_ui");
@@ -23,7 +25,7 @@ public class TrinketsPoly {
 
         var isCompact = !getIsCompact(player);
 
-        ctx.getSource().sendFeedback(Text.translatable("trinkets.command.compact." + isCompact), false);
+        ctx.getSource().sendFeedback((Supplier<Text>) Text.translatable("trinkets.command.compact." + isCompact), false);
 
         PlayerDataApi.setGlobalDataFor(player, COMPACT_SETTING, NbtByte.of(isCompact));
 

@@ -58,6 +58,8 @@ public abstract class LivingEntityMixin extends Entity {
 	@Shadow
 	protected abstract AttributeContainer getAttributes();
 
+	@Shadow public abstract boolean areItemsDifferent(ItemStack stack, ItemStack stack2);
+
 	private LivingEntityMixin() {
 		super(null, null);
 	}
@@ -79,7 +81,7 @@ public abstract class LivingEntityMixin extends Entity {
 	private void dropInventory(CallbackInfo info) {
 		LivingEntity entity = (LivingEntity) (Object) this;
 
-		boolean keepInv = entity.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY);
+		boolean keepInv = entity.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY);
 		TrinketsApi.getTrinketComponent(entity).ifPresent(trinkets -> trinkets.forEach((ref, stack) -> {
 			if (stack.isEmpty()) {
 				return;
@@ -150,7 +152,7 @@ public abstract class LivingEntityMixin extends Entity {
 
 				if (!ItemStack.areEqual(newStack, oldStack)) {
 
-					if (!this.world.isClient) {
+					if (!this.getWorld().isClient) {
 						contentUpdates.put(newRef, copy);
 						UUID uuid = SlotAttributes.getUuid(ref);
 
@@ -191,7 +193,7 @@ public abstract class LivingEntityMixin extends Entity {
 						}
 					}
 
-					if (!newStack.isItemEqual(oldStack)) {
+					if (areItemsDifferent(newStack, oldStack)) {
 						TrinketsApi.getTrinket(oldStack.getItem()).onUnequip(oldStack, ref, entity);
 						TrinketsApi.getTrinket(newStack.getItem()).onEquip(newStack, ref, entity);
 					}

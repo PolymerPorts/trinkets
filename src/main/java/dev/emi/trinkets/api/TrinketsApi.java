@@ -73,8 +73,8 @@ public class TrinketsApi {
 	 * called in the callback of {@link ItemStack#damage(int, LivingEntity, Consumer)}
 	 */
 	public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
-		if (!entity.world.isClient) {
-			if (entity.world instanceof ServerWorld world) {
+		if (!entity.getWorld().isClient) {
+			if (entity.getWorld() instanceof ServerWorld world) {
 				for(int i = 0; i < 5; ++i) {
 					Vec3d vec3d = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
 					vec3d = vec3d.rotateX(-entity.getPitch() * 0.017453292F);
