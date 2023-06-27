@@ -23,7 +23,7 @@ public class TrinketsPoly {
 
         var isCompact = !getIsCompact(player);
 
-        ctx.getSource().sendFeedback(Text.translatable("trinkets.command.compact." + isCompact), false);
+        ctx.getSource().sendFeedback(() -> Text.translatable("trinkets.command.compact." + isCompact), false);
 
         PlayerDataApi.setGlobalDataFor(player, COMPACT_SETTING, NbtByte.of(isCompact));
 
