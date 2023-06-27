@@ -13,6 +13,7 @@ version = project.mod_version + "+polymerport." + project.port_version
 group = project.maven_group
 
 
+
 repositories {
 	maven { url = "https://maven.terraformersmc.com" }
 	maven { url = "https://maven.nucleoid.xyz" }
@@ -56,8 +57,8 @@ dependencies {
 
 	// Mod dependencies
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}")
-	modImplementation include("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
+	modApi include("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}")
+	modApi include("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
 	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
