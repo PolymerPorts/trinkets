@@ -27,7 +27,7 @@ To add Trinkets to your project you need to add jitpack and nerdhubmc to your re
 repositories {
 	maven { url = "https://maven.terraformersmc.com/" }
 	maven { url = "https://maven.nucleoid.xyz" }
-	maven { url = "https://ladysnake.jfrog.io/artifactory/mods" }
+	maven { url = "https://maven.ladysnake.org/releases" }
 }
 ```
 And then to add Trinkets you add it as a dependency in your build.gradle
