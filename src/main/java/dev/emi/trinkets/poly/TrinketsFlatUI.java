@@ -58,7 +58,7 @@ public class TrinketsFlatUI extends SimpleGui {
                 .flatMap((x) -> x.values().stream().sorted(Comparator.comparingInt(a -> a.getSlotType().getOrder())))
                 .collect(Collectors.toList());
 
-        this.setTitle(PolymerResourcePackUtils.hasPack(player)
+        this.setTitle(PolymerResourcePackUtils.hasMainPack(player)
                 ? Text.empty().append(Text.literal(compact ? "-1." : "-0.")
                         .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new Identifier(TrinketsMain.MOD_ID, "gui"))))
                         .append(Text.translatable("trinkets.name"))
@@ -77,7 +77,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     public void drawLines() {
-        if (this.compact && !PolymerResourcePackUtils.hasPack(this.player)) {
+        if (this.compact && !PolymerResourcePackUtils.hasMainPack(this.player)) {
             for (int x = 0; x < 5; x++) {
                 this.setSlot(9 * x + 4, Elements.FILLER);
             }
@@ -130,7 +130,7 @@ public class TrinketsFlatUI extends SimpleGui {
             this.setSlot(base + slot++, Elements.FILLER);
         }
 
-        boolean hasPack = PolymerResourcePackUtils.hasPack(player);
+        boolean hasPack = PolymerResourcePackUtils.hasMainPack(player);
 
         if (trinketInventory.size() <= invSize) {
             for (int i = 0; i < invSize; i++) {
@@ -189,7 +189,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     private void drawNavbar() {
-        boolean addNavbarFiller = !PolymerResourcePackUtils.hasPack(this.player);
+        boolean addNavbarFiller = !PolymerResourcePackUtils.hasMainPack(this.player);
 
         if (this.inventories.size() > this.displayPerPage) {
 
