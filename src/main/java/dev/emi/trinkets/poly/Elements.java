@@ -8,9 +8,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class Elements {
-    public static final GuiElementBuilder FILLER = new GuiElementBuilder(Items.WHITE_STAINED_GLASS_PANE).setName(Text.empty())
+    public static final GuiElementBuilder FILLER = new GuiElementBuilder(Items.WHITE_STAINED_GLASS_PANE).hideTooltip()
             .setCustomModelData(GuiModels.getOrCreate(new Identifier(TrinketsMain.MOD_ID, "gui/polybuttons/filler"), Items.WHITE_STAINED_GLASS_PANE).value());
-    public static final GuiElementBuilder FILLER_NAVBAR = new GuiElementBuilder(Items.BLACK_STAINED_GLASS_PANE).setName(Text.empty());
+    public static final GuiElementBuilder FILLER_NAVBAR = new GuiElementBuilder(Items.BLACK_STAINED_GLASS_PANE).hideTooltip();
 
 
     public static final PolymerModelData PREVIOUS = GuiModels.getOrCreate(new Identifier(TrinketsMain.MOD_ID, "gui/polybuttons/previous"), Items.GREEN_STAINED_GLASS_PANE);

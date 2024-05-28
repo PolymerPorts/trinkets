@@ -13,11 +13,7 @@ import dev.emi.trinkets.api.TrinketsApi;
 import dev.emi.trinkets.api.TrinketsAttributeModifiersComponent;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.SlotType;
-import dev.emi.trinkets.payload.BreakPayload;
-import dev.emi.trinkets.payload.SyncInventoryPayload;
-import dev.emi.trinkets.payload.SyncSlotsPayload;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -31,13 +27,8 @@ import com.mojang.brigadier.context.CommandContext;
 
 import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.emi.trinkets.data.SlotLoader;
-import dev.emi.trinkets.poly.Elements;
 import dev.emi.trinkets.poly.TrinketsFlatUI;
 import dev.emi.trinkets.poly.TrinketsPoly;
-import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
-import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
-import eu.pb4.playerdata.api.PlayerDataApi;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
@@ -69,8 +60,6 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success)
 				-> EntitySlotLoader.SERVER.sync(server.getPlayerManager().getPlayerList()));
 
-		TrinketsPoly.init();
-		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
 		UseItemCallback.EVENT.register((player, world, hand) -> {
 			ItemStack stack = player.getStackInHand(hand);
 			Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
@@ -82,7 +71,8 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 			return TypedActionResult.pass(stack);
 		});
 		Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
-			dispatcher.register(literal("trinkets")
+		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
+				dispatcher.register(literal("trinkets")
 				.executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))
 				.then(CommandManager.literal("compact").executes(TrinketsPoly::toggleCompactCommand))
 				.then(
@@ -118,6 +108,8 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 					)
 				)
 			));
+
+		TrinketsPoly.init();
 	}
 
 	private static int trinketsCommand(CommandContext<ServerCommandSource> context, int amount) {

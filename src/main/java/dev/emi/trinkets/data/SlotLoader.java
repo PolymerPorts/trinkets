@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
@@ -165,10 +166,11 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 			ItemStack iconItem;
 
 			try {
-				var decode = ItemStringReader.item(Registries.ITEM.getReadOnlyWrapper(), new StringReader(this.iconItem));
+				var reader = new ItemStringReader(DynamicRegistryManager.of(Registries.REGISTRIES));
+				var decode = reader.consume(new StringReader(this.iconItem));
 				var stack = new ItemStack(decode.item().value());
 
-				stack.setNbt(decode.nbt());
+				stack.applyComponentsFrom(decode.components());
 
 				iconItem = stack;
 			} catch (Exception e) {

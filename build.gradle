@@ -68,14 +68,13 @@ dependencies {
 	modCompileOnly "dev.emi:emi-fabric:${emi_version}:api"
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
-	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
+	modImplementation "eu.pb4:polymer-core:${project.polymer_version}"
+	modImplementation "eu.pb4:polymer-resource-pack:${project.polymer_version}"
 	modImplementation include("eu.pb4:player-data-api:${project.pda_version}")
 	modImplementation include("xyz.nucleoid:server-translations-api:${project.translation_version}")
 
 
 	modLocalRuntime "eu.pb4:polymer-autohost:${project.polymer_version}"
-	modCompileOnly "eu.pb4:polymer-core:${project.polymer_version}"
-	modLocalRuntime "eu.pb4:polymer-core:${project.polymer_version}"
 
 	// Dev Runtime
 	testmodImplementation sourceSets.main.output
@@ -159,6 +158,9 @@ if (System.getenv("MODRINTH")) {
 		versionType = "beta"
 		uploadFile = remapJar // This links to a task that builds your mod jar and sets "uploadFile" to the mod jar.
 		gameVersions = [((String) project.minecraft_version)]
+		dependencies {
+			required "polymer"
+		}
 		changelog = System.getenv("CHANGELOG")
 		loaders = ["fabric", "quilt"]
 	}

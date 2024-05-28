@@ -3,12 +3,15 @@ package dev.emi.trinkets.api;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.poly.GuiModels;
 import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -49,7 +52,7 @@ public class SlotType {
 		this.dropRule = dropRule;
 
 		this.itemIcon = itemIcon.copy();
-		this.itemIcon.getOrCreateNbt().putInt("CustomModelData", GuiModels.getOrCreate(icon, this.itemIcon.getItem()).value());
+		this.itemIcon.set(DataComponentTypes.CUSTOM_MODEL_DATA, GuiModels.getOrCreate(icon, this.itemIcon.getItem()).asComponent());
 	}
 
 	public String getGroup() {
@@ -121,7 +124,7 @@ public class SlotType {
 		tag.put("TooltipPredicates", tooltipPredicateList);
 		tag.putString("DropRule", dropRule.toString());
 
-		tag.put("PolyPort$icon", this.itemIcon.writeNbt(new NbtCompound()));
+		tag.put("PolyPort$icon", this.itemIcon.encodeAllowEmpty(DynamicRegistryManager.of(Registries.REGISTRIES)));
 
 		data.put("SlotData", tag);
 	}
@@ -158,7 +161,7 @@ public class SlotType {
 			dropRule = TrinketEnums.DropRule.valueOf(dropRuleName);
 		}
 
-		var itemIcon = ItemStack.fromNbt(slotData.getCompound("PolyPort$icon"));
+		var itemIcon = ItemStack.fromNbtOrEmpty(DynamicRegistryManager.of(Registries.REGISTRIES), slotData.getCompound("PolyPort$icon"));
 		if (itemIcon == ItemStack.EMPTY) {
 			itemIcon = Items.IRON_CHESTPLATE.getDefaultStack();
 		}

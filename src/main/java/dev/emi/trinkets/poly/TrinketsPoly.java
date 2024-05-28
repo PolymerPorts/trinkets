@@ -3,7 +3,9 @@ package dev.emi.trinkets.poly;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.emi.trinkets.TrinketsMain;
+import dev.emi.trinkets.api.TrinketsAttributeModifiersComponent;
 import eu.pb4.playerdata.api.PlayerDataApi;
+import eu.pb4.polymer.core.api.item.PolymerItemUtils;
 import net.minecraft.nbt.NbtByte;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -16,6 +18,7 @@ public class TrinketsPoly {
 
     public static void init() {
         Elements.FILLER.hashCode();
+        PolymerItemUtils.markAsPolymer(TrinketsAttributeModifiersComponent.TYPE);
     }
 
     public static int toggleCompactCommand(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {

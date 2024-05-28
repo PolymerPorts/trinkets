@@ -14,11 +14,9 @@ import java.util.function.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import dev.emi.trinkets.TrinketPlayerScreenHandler;
-import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
-import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.Component;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
@@ -32,7 +30,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import org.ladysnake.cca.api.v3.entity.RespawnableComponent;
 
-public class LivingEntityTrinketComponent implements TrinketComponent, AutoSyncedComponent, RespawnableComponent {
+public class LivingEntityTrinketComponent implements TrinketComponent, Component, RespawnableComponent {
 
 	public Map<String, Map<String, TrinketInventory>> inventory = new HashMap<>();
 	public Set<TrinketInventory> trackingUpdates = new HashSet<>();
@@ -59,11 +57,6 @@ public class LivingEntityTrinketComponent implements TrinketComponent, AutoSynce
 	@Override
 	public Map<String, Map<String, TrinketInventory>> getInventory() {
 		return inventory;
-	}
-
-	@Override
-	public boolean shouldSyncWith(ServerPlayerEntity player) {
-		return false;
 	}
 
 	@Override
@@ -265,47 +258,6 @@ public class LivingEntityTrinketComponent implements TrinketComponent, AutoSynce
 	}
 
 	@Override
-	public void applySyncPacket(RegistryByteBuf buf) {
-		NbtCompound tag = buf.readNbt();
-
-		if (tag != null) {
-
-			for (String groupKey : tag.getKeys()) {
-				NbtCompound groupTag = tag.getCompound(groupKey);
-
-				if (groupTag != null) {
-					Map<String, TrinketInventory> groupSlots = this.inventory.get(groupKey);
-
-					if (groupSlots != null) {
-
-						for (String slotKey : groupTag.getKeys()) {
-							NbtCompound slotTag = groupTag.getCompound(slotKey);
-							NbtList list = slotTag.getList("Items", NbtType.COMPOUND);
-							TrinketInventory inv = groupSlots.get(slotKey);
-
-							if (inv != null) {
-								inv.applySyncTag(slotTag.getCompound("Metadata"));
-							}
-
-							for (int i = 0; i < list.size(); i++) {
-								NbtCompound c = list.getCompound(i);
-								ItemStack stack = ItemStack.fromNbtOrEmpty(buf.getRegistryManager(), c);
-								if (inv != null && i < inv.size()) {
-									inv.setStack(i, stack);
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (this.entity instanceof PlayerEntity player) {
-				//((TrinketPlayerScreenHandler) player.playerScreenHandler).trinkets$updateTrinketSlots(false);
-			}
-		}
-	}
-
-	@Override
 	public void writeToNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
 		for (Map.Entry<String, Map<String, TrinketInventory>> group : this.getInventory().entrySet()) {
 			NbtCompound groupTag = new NbtCompound();
@@ -323,15 +275,6 @@ public class LivingEntityTrinketComponent implements TrinketComponent, AutoSynce
 			}
 			tag.put(group.getKey(), groupTag);
 		}
-	}
-
-	@Override
-	public void writeSyncPacket(RegistryByteBuf buf, ServerPlayerEntity recipient) {
-		this.syncing = true;
-		NbtCompound tag = new NbtCompound();
-		this.writeToNbt(tag, buf.getRegistryManager());
-		this.syncing = false;
-		buf.writeNbt(tag);
 	}
 
 	@Override

@@ -40,9 +40,9 @@ public class Schema1460Mixin {
 	@ModifyReturnValue(method = {"method_5260", "method_5236"}, at = @At("RETURN"))
 	private static TypeTemplate attachTrinketFixer(TypeTemplate original) {
 		// Add schema for trinkets to existing datafixers
-		return DSL.allWithRemainder(original,
+		return DSL.allWithRemainder(
 				// cardinal_components might not exist, so add it as an optional field.
-				DSL.optionalFields("cardinal_components",
+				DSL.optional(DSL.field("cardinal_components",
 						// trinkets:trinkets might not exist, so add it as an optional field.
 						DSL.optionalFields("trinkets:trinkets",
 								// Define it as (optional) compound list / map (Map<String, Further Definition>). Keys are slot groups.
@@ -54,7 +54,7 @@ public class Schema1460Mixin {
 										))
 								))
 						)
-				)
+				)), original
 		);
 	}
 }

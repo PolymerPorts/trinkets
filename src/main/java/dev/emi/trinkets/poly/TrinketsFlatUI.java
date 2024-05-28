@@ -19,10 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TrinketsFlatUI extends SimpleGui {
@@ -54,7 +51,7 @@ public class TrinketsFlatUI extends SimpleGui {
 
         this.inventories = this.component.getInventory().entrySet().stream()
                 .sorted(Comparator.comparingInt(e -> this.component.getGroups().get(e.getKey()).getOrder()))
-                .map((x) -> x.getValue())
+                .map(Map.Entry::getValue)
                 .flatMap((x) -> x.values().stream().sorted(Comparator.comparingInt(a -> a.getSlotType().getOrder())))
                 .collect(Collectors.toList());
 
@@ -124,7 +121,7 @@ public class TrinketsFlatUI extends SimpleGui {
         var invSize = this.compact ? 2 : 6;
 
         int slot = 0;
-        this.setSlot(base + slot++, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideFlags());
+        this.setSlot(base + slot++, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideDefaultTooltip());
 
         if (!this.compact) {
             this.setSlot(base + slot++, Elements.FILLER);
@@ -201,6 +198,7 @@ public class TrinketsFlatUI extends SimpleGui {
             this.setSlot(5 * 9 + 2, new GuiElementBuilder(Elements.PREVIOUS.item())
                     .setName(Text.translatable("createWorld.customize.custom.prev"))
                     .setCustomModelData(Elements.PREVIOUS.value())
+                    .hideDefaultTooltip()
                     .setCallback((x, y, z) -> {
                         this.page -= 1;
 
@@ -221,6 +219,7 @@ public class TrinketsFlatUI extends SimpleGui {
 
             this.setSlot(5 * 9 + 6, new GuiElementBuilder(Elements.NEXT.item())
                     .setName(Text.translatable("createWorld.customize.custom.next"))
+                    .hideDefaultTooltip()
                     .setCustomModelData(Elements.NEXT.value())
                     .setCallback((x, y, z) -> {
                         this.page += 1;
@@ -248,7 +247,7 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
 
-    public static final void playClickSound(ServerPlayerEntity player) {
-        player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 0.7f, 1);
+    public static void playClickSound(ServerPlayerEntity player) {
+        player.playSoundToPlayer(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 0.7f, 1);
     }
 }

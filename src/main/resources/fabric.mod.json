@@ -17,11 +17,14 @@
 			"contact": {
 				"github": "https://github.com/TheIllusiveC4"
 			}
+		},
+		{
+			"name": "Patbox (Polymer Port)"
 		}
 	],
 	"contact": {
-		"homepage": "https://www.curseforge.com/minecraft/mc-mods/trinkets-fabric",
-		"sources": "https://github.com/emilyploszaj/trinkets"
+		"homepage": "https://modrinth.com/mod/trinkets-polymer",
+		"sources": "https://github.com/PolymerPorts/trinkets"
 	},
 
 	"license": "MIT",
@@ -34,12 +37,6 @@
 		],
 		"cardinal-components-entity": [
 			"dev.emi.trinkets.TrinketsMain"
-		],
-		"rei_client": [
-			"dev.emi.trinkets.compat.TrinketsREIPlugin"
-		],
-		"emi": [
-			"dev.emi.trinkets.compat.TrinketsEmiPlugin"
 		]
 	},
   "accessWidener": "trinkets.accesswidener",
@@ -54,6 +51,8 @@
 
 	"depends": {
 		"minecraft": ">1.18",
+		"polymer-core": ">=0.8.0",
+		"polymer-resource-pack": ">=0.8.0",
 		"fabricloader": ">=0.7.0",
 		"cardinal-components-base": ">=3.0.0-0",
 		"cardinal-components-entity": ">=3.0.0-0",
