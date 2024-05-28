@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
 	@Shadow
-    public ServerPlayerEntity player;
+	public ServerPlayerEntity player;
 	
 	@Inject(method = "onClickSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;disableSyncing()V", shift = At.Shift.BEFORE), cancellable = true)
 	private void polyport_trinkets_handleClick(ClickSlotC2SPacket packet, CallbackInfo ci) {

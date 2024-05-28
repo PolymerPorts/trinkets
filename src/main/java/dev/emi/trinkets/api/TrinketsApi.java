@@ -4,9 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Function3;
 import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.data.EntitySlotLoader;
-import dev.onyxstudios.cca.api.v3.component.ComponentKey;
-import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
-import io.netty.buffer.Unpooled;
+import dev.emi.trinkets.payload.BreakPayload;
+import net.minecraft.util.math.random.Random;
+import org.ladysnake.cca.api.v3.component.ComponentKey;
+import org.ladysnake.cca.api.v3.component.ComponentRegistryV3;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -34,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import net.minecraft.world.World;
 
 public class TrinketsApi {
@@ -70,7 +70,7 @@ public class TrinketsApi {
 
 	/**
 	 * Called to sync a trinket breaking event with clients. Should generally be
-	 * called in the callback of {@link ItemStack#damage(int, LivingEntity, Consumer)}
+	 * called in the callback of {@link ItemStack#damage(int, Random, ServerPlayerEntity, Runnable)}
 	 */
 	public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
 		if (!entity.getWorld().isClient) {

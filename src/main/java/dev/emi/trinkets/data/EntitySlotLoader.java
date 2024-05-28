@@ -22,6 +22,7 @@ import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.data.SlotLoader.GroupData;
 import dev.emi.trinkets.data.SlotLoader.SlotData;
+import dev.emi.trinkets.payload.SyncSlotsPayload;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
@@ -199,26 +200,6 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 	}
 
 	public void sync(List<? extends ServerPlayerEntity> players) {
-	}
-
-	private PacketByteBuf getSlotsPacket() {
-		NbtCompound tag = new NbtCompound();
-
-		this.slots.forEach((entity, slotMap) -> {
-			NbtCompound slotsTag = new NbtCompound();
-
-			slotMap.forEach((id, slotGroup) -> {
-				NbtCompound groupTag = new NbtCompound();
-				slotGroup.write(groupTag);
-				slotsTag.put(id, groupTag);
-			});
-
-			tag.put(Registries.ENTITY_TYPE.getId(entity).toString(), slotsTag);
-		});
-
-		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-		buf.writeNbt(tag);
-		return buf;
 	}
 
 	@Override

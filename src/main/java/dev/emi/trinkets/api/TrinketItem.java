@@ -1,10 +1,11 @@
 package dev.emi.trinkets.api;
 
 import dev.emi.trinkets.TrinketSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Equipment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -31,6 +32,10 @@ public class TrinketItem extends Item implements Trinket {
 	}
 
 	public static boolean equipItem(PlayerEntity user, ItemStack stack) {
+		return equipItem((LivingEntity) user, stack);
+	}
+
+	public static boolean equipItem(LivingEntity user, ItemStack stack) {
 		var optional = TrinketsApi.getTrinketComponent(user);
 		if (optional.isPresent()) {
 			TrinketComponent comp = optional.get();
@@ -42,10 +47,11 @@ public class TrinketItem extends Item implements Trinket {
 							if (TrinketSlot.canInsert(stack, ref, user)) {
 								ItemStack newStack = stack.copy();
 								inv.setStack(i, newStack);
-								SoundEvent soundEvent = stack.getItem() instanceof Equipment eq ? eq.getEquipSound() : null;
+								Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
+								RegistryEntry<SoundEvent> soundEvent = trinket.getEquipSound(stack, ref, user);
 								if (!stack.isEmpty() && soundEvent != null) {
 								   user.emitGameEvent(GameEvent.EQUIP);
-								   user.playSound(soundEvent, 1.0F, 1.0F);
+								   user.playSound(soundEvent.value(), 1.0F, 1.0F);
 								}
 								stack.setCount(0);
 								return true;

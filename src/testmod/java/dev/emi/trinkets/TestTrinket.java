@@ -15,6 +15,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,16 +37,16 @@ public class TestTrinket extends TrinketItem implements PolymerItem {
 		});*/
     }
 
-    @Override
-    public Multimap<EntityAttribute, EntityAttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, UUID uuid) {
-        Multimap<EntityAttribute, EntityAttributeModifier> modifiers = super.getModifiers(stack, slot, entity, uuid);
-        EntityAttributeModifier speedModifier = new EntityAttributeModifier(uuid, "trinkets-testmod:movement_speed",
-                0.4, EntityAttributeModifier.Operation.MULTIPLY_TOTAL);
-        modifiers.put(EntityAttributes.GENERIC_MOVEMENT_SPEED, speedModifier);
-        SlotAttributes.addSlotModifier(modifiers, "offhand/ring", uuid, 6, EntityAttributeModifier.Operation.ADDITION);
-        SlotAttributes.addSlotModifier(modifiers, "hand/glove", uuid, 1, EntityAttributeModifier.Operation.ADDITION);
-        return modifiers;
-    }
+	@Override
+	public Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, UUID uuid) {
+		Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> modifiers = super.getModifiers(stack, slot, entity, uuid);
+		EntityAttributeModifier speedModifier = new EntityAttributeModifier(uuid, "trinkets-testmod:movement_speed",
+				0.4, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+		modifiers.put(EntityAttributes.GENERIC_MOVEMENT_SPEED, speedModifier);
+		SlotAttributes.addSlotModifier(modifiers, "offhand/ring", uuid, 6, EntityAttributeModifier.Operation.ADD_VALUE);
+		SlotAttributes.addSlotModifier(modifiers, "hand/glove", uuid, 1, EntityAttributeModifier.Operation.ADD_VALUE);
+		return modifiers;
+	}
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
