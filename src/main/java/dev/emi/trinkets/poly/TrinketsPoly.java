@@ -5,7 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.api.TrinketsAttributeModifiersComponent;
 import eu.pb4.playerdata.api.PlayerDataApi;
-import eu.pb4.polymer.core.api.item.PolymerItemUtils;
+import eu.pb4.polymer.core.api.other.PolymerComponent;
 import net.minecraft.nbt.NbtByte;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -14,11 +14,11 @@ import net.minecraft.util.Identifier;
 
 public class TrinketsPoly {
     public static final PolyConfig CONFIG = PolyConfig.loadOrCreateConfig();
-    public static final Identifier COMPACT_SETTING = new Identifier(TrinketsMain.MOD_ID, "compact_ui");
+    public static final Identifier COMPACT_SETTING = Identifier.of(TrinketsMain.MOD_ID, "compact_ui");
 
     public static void init() {
         Elements.FILLER.hashCode();
-        PolymerItemUtils.markAsPolymer(TrinketsAttributeModifiersComponent.TYPE);
+        PolymerComponent.registerDataComponent(TrinketsAttributeModifiersComponent.TYPE);
     }
 
     public static int toggleCompactCommand(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {

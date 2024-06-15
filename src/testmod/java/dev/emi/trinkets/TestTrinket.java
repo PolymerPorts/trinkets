@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public class TestTrinket extends TrinketItem implements PolymerItem {
 
-    private static final Identifier TEXTURE = new Identifier(TrinketsTest.MOD_ID, "textures/entity/trinket/hat.png");
+    private static final Identifier TEXTURE = Identifier.of(TrinketsTest.MOD_ID, "textures/entity/trinket/hat.png");
 
     public TestTrinket(Settings settings) {
         super(settings);

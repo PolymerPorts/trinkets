@@ -57,7 +57,7 @@ public class TrinketsFlatUI extends SimpleGui {
 
         this.setTitle(PolymerResourcePackUtils.hasMainPack(player)
                 ? Text.empty().append(Text.literal(compact ? "-1." : "-0.")
-                        .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new Identifier(TrinketsMain.MOD_ID, "gui"))))
+                        .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(Identifier.of(TrinketsMain.MOD_ID, "gui"))))
                         .append(Text.translatable("trinkets.name"))
                 : Text.translatable("trinkets.name")
         );

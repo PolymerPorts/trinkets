@@ -170,7 +170,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 				var decode = reader.consume(new StringReader(this.iconItem));
 				var stack = new ItemStack(decode.item().value());
 
-				stack.applyComponentsFrom(decode.components());
+				stack.applyChanges(decode.components());
 
 				iconItem = stack;
 			} catch (Exception e) {

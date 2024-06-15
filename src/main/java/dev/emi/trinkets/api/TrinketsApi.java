@@ -77,7 +77,6 @@ public class TrinketsApi {
 	 * called in the callback of {@link ItemStack#damage(int, ServerWorld, ServerPlayerEntity, Consumer)}
 	 */
 	public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
-		World world = entity.getWorld();
 		if (!entity.getWorld().isClient) {
 			if (entity.getWorld() instanceof ServerWorld world) {
 				for(int i = 0; i < 5; ++i) {

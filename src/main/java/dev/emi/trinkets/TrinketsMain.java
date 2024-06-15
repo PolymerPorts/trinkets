@@ -70,7 +70,8 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 			}
 			return TypedActionResult.pass(stack);
 		});
-		Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier(MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
+		Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
+
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
 				dispatcher.register(literal("trinkets")
 				.executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))

@@ -7,7 +7,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
-import dev.emi.trinkets.mixin.accessor.LivingEntityAccessor;
 import java.util.function.Consumer;
 
 import net.minecraft.component.EnchantmentEffectComponentTypes;
