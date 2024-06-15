@@ -9,9 +9,9 @@ import net.minecraft.util.Identifier;
 @Deprecated
 public class TrinketsNetwork {
 
-  public static final CustomPayload.Id<SyncSlotsPayload> SYNC_SLOTS = new CustomPayload.Id<>(new Identifier(TrinketsMain.MOD_ID, "sync_slots"));
-  public static final CustomPayload.Id<SyncInventoryPayload> SYNC_INVENTORY = new CustomPayload.Id<>(new Identifier(TrinketsMain.MOD_ID, "sync_inventory"));
-  public static final CustomPayload.Id<BreakPayload> BREAK = new CustomPayload.Id<>(new Identifier(TrinketsMain.MOD_ID, "break"));
+  public static final CustomPayload.Id<SyncSlotsPayload> SYNC_SLOTS = new CustomPayload.Id<>(Identifier.of(TrinketsMain.MOD_ID, "sync_slots"));
+  public static final CustomPayload.Id<SyncInventoryPayload> SYNC_INVENTORY = new CustomPayload.Id<>(Identifier.of(TrinketsMain.MOD_ID, "sync_inventory"));
+  public static final CustomPayload.Id<BreakPayload> BREAK = new CustomPayload.Id<>(Identifier.of(TrinketsMain.MOD_ID, "break"));
 
   private TrinketsNetwork() {
   }

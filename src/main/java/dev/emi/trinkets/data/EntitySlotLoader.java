@@ -24,11 +24,10 @@ import dev.emi.trinkets.data.SlotLoader.GroupData;
 import dev.emi.trinkets.data.SlotLoader.SlotData;
 import dev.emi.trinkets.payload.SyncSlotsPayload;
 import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
 import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
@@ -44,7 +43,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 	public static final EntitySlotLoader SERVER = new EntitySlotLoader();
 
 	private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-	private static final Identifier ID = new Identifier(TrinketsMain.MOD_ID, "entities");
+	private static final Identifier ID = Identifier.of(TrinketsMain.MOD_ID, "entities");
 
 	private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
 
@@ -95,9 +94,9 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 										String id;
 
 										if (name.startsWith("#")) {
-											id = "#" + new Identifier(name.substring(1));
+											id = "#" + Identifier.of(name.substring(1));
 										} else {
-											id = new Identifier(name).toString();
+											id = Identifier.of(name).toString();
 										}
 										Map<String, Set<String>> slots = map.computeIfAbsent(id, (k) -> new HashMap<>());
 
@@ -137,7 +136,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 					// TODO rewrite this to work with the new tag system
 					TrinketsMain.LOGGER.error("[trinkets] Attempted to assign entity entry to tag");
 					/*
-					TagKey<EntityType<?>> tag = TagKey.of(Registry.ENTITY_TYPE_KEY, new Identifier(entityName.substring(1)));
+					TagKey<EntityType<?>> tag = TagKey.of(Registry.ENTITY_TYPE_KEY, Identifier.of(entityName.substring(1)));
 					List<? extends EntityType<?>> entityTypes = Registry.ENTITY_TYPE.getEntryList(tag)
 							.orElseThrow(() -> new IllegalArgumentException("Unknown entity tag '" + entityName + "'"))
 							.stream()
@@ -146,7 +145,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 
 					types.addAll(entityTypes);*/
 				} else {
-					types.add(Registries.ENTITY_TYPE.getOrEmpty(new Identifier(entityName))
+					types.add(Registries.ENTITY_TYPE.getOrEmpty(Identifier.of(entityName))
 							.orElseThrow(() -> new IllegalArgumentException("Unknown entity '" + entityName + "'")));
 				}
 			} catch (IllegalArgumentException e) {

@@ -18,12 +18,14 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
 import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.util.Identifier;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
@@ -159,7 +161,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				if (groupInv != null) {
 					TrinketInventory inv = groupInv.get(slot);
 					if (inv != null) {
-						inv.removeModifier(modifier.uuid());
+						inv.removeModifier(modifier.id());
 					}
 				}
 			}
@@ -197,7 +199,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				if (groupSlots != null) {
 					for (String slotKey : groupTag.getKeys()) {
 						NbtCompound slotTag = groupTag.getCompound(slotKey);
-						NbtList list = slotTag.getList("Items", NbtType.COMPOUND);
+						NbtList list = slotTag.getList("Items", NbtElement.COMPOUND_TYPE);
 						TrinketInventory inv = groupSlots.get(slotKey);
 
 						if (inv != null) {
@@ -217,7 +219,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				} else {
 					for (String slotKey : groupTag.getKeys()) {
 						NbtCompound slotTag = groupTag.getCompound(slotKey);
-						NbtList list = slotTag.getList("Items", NbtType.COMPOUND);
+						NbtList list = slotTag.getList("Items", NbtElement.COMPOUND_TYPE);
 						for (int i = 0; i < list.size(); i++) {
 							NbtCompound c = list.getCompound(i);
 							dropped.add(ItemStack.fromNbtOrEmpty(lookup, c));
@@ -232,9 +234,9 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 		Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
 		this.forEach((ref, stack) -> {
 			if (!stack.isEmpty()) {
-				UUID uuid = SlotAttributes.getUuid(ref);
+				Identifier identifier = SlotAttributes.getIdentifier(ref);
 				Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
-				Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(stack, ref, entity, uuid);
+				Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(stack, ref, entity, identifier);
 				for (RegistryEntry<EntityAttribute> entityAttribute : map.keySet()) {
 					if (entityAttribute.hasKeyAndValue() && entityAttribute.value() instanceof SlotAttributes.SlotEntityAttribute slotEntityAttribute) {
 						slotMap.putAll(slotEntityAttribute.slot, map.get(entityAttribute));

@@ -15,10 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/*
+/**
  * This is main schema where Minecraft defines most post-flattening data formats.
  * Trinkets injects here adding support for basic datafixing in case of other mods supporting it or just general vanilla nbt
  * format changes.
+ *
+ * @author Patbox
  */
 @Mixin(Schema1460.class)
 public class Schema1460Mixin {

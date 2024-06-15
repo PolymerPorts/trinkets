@@ -135,24 +135,24 @@ public class SlotType {
 		String name = slotData.getString("Name");
 		int order = slotData.getInt("Order");
 		int amount = slotData.getInt("Amount");
-		Identifier icon = new Identifier(slotData.getString("Icon"));
-		NbtList quickMoveList = slotData.getList("QuickMovePredicates", NbtType.STRING);
+		Identifier icon = Identifier.of(slotData.getString("Icon"));
+		NbtList quickMoveList = slotData.getList("QuickMovePredicates", NbtElement.STRING_TYPE);
 		Set<Identifier> quickMovePredicates = new HashSet<>();
 
 		for (NbtElement tag : quickMoveList) {
-			quickMovePredicates.add(new Identifier(tag.asString()));
+			quickMovePredicates.add(Identifier.of(tag.asString()));
 		}
-		NbtList validatorList = slotData.getList("ValidatorPredicates", NbtType.STRING);
+		NbtList validatorList = slotData.getList("ValidatorPredicates", NbtElement.STRING_TYPE);
 		Set<Identifier> validatorPredicates = new HashSet<>();
 
 		for (NbtElement tag : validatorList) {
-			validatorPredicates.add(new Identifier(tag.asString()));
+			validatorPredicates.add(Identifier.of(tag.asString()));
 		}
-		NbtList tooltipList = slotData.getList("TooltipPredicates", NbtType.STRING);
+		NbtList tooltipList = slotData.getList("TooltipPredicates", NbtElement.STRING_TYPE);
 		Set<Identifier> tooltipPredicates = new HashSet<>();
 
 		for (NbtElement tag : tooltipList) {
-			tooltipPredicates.add(new Identifier(tag.asString()));
+			tooltipPredicates.add(Identifier.of(tag.asString()));
 		}
 		String dropRuleName = slotData.getString("DropRule");
 		DropRule dropRule = DropRule.DEFAULT;
@@ -184,5 +184,9 @@ public class SlotType {
 
 	public ItemStack getIconItem() {
 		return this.itemIcon.copy();
+	}
+
+	public String getId() {
+		return this.group + "/" + this.name;
 	}
 }

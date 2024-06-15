@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -18,9 +17,11 @@ import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
 import dev.emi.trinkets.payload.SyncInventoryPayload;
+import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,6 +46,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 
 /**
  * Trinket dropping on death, trinket EAMs, and trinket equip/unequip calls
@@ -100,7 +102,7 @@ public abstract class LivingEntityMixin extends Entity {
 				if (keepInv && entity.getType() == EntityType.PLAYER) {
 					dropRule = DropRule.KEEP;
 				} else {
-					if (EnchantmentHelper.hasVanishingCurse(stack)) {
+					if (EnchantmentHelper.hasAnyEnchantmentsWith(stack, EnchantmentEffectComponentTypes.PREVENT_EQUIPMENT_DROP)) {
 						dropRule = DropRule.DESTROY;
 					} else {
 						dropRule = DropRule.DROP;
@@ -156,13 +158,14 @@ public abstract class LivingEntityMixin extends Entity {
 					TrinketsApi.getTrinket(oldStack.getItem()).onUnequip(oldStack, ref, entity);
 					TrinketsApi.getTrinket(newStack.getItem()).onEquip(newStack, ref, entity);
 
-					if (!this.getWorld().isClient) {
+					World world = this.getWorld();
+					if (!world.isClient) {
 						contentUpdates.put(newRef, newStackCopy);
-						UUID uuid = SlotAttributes.getUuid(ref);
+						Identifier identifier = SlotAttributes.getIdentifier(ref);
 
 						if (!oldStack.isEmpty()) {
 							Trinket trinket = TrinketsApi.getTrinket(oldStack.getItem());
-							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(oldStack, ref, entity, uuid);
+							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(oldStack, ref, entity, identifier);
 							Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
 							Set<RegistryEntry<EntityAttribute>> toRemove = Sets.newHashSet();
 							for (RegistryEntry<EntityAttribute> attr : map.keySet()) {
@@ -178,7 +181,7 @@ public abstract class LivingEntityMixin extends Entity {
 							map.asMap().forEach((attribute, modifiers) -> {
 								EntityAttributeInstance entityAttributeInstance = this.getAttributes().getCustomInstance(attribute);
 								if (entityAttributeInstance != null) {
-									modifiers.forEach(modifier -> entityAttributeInstance.removeModifier(modifier.uuid()));
+									modifiers.forEach(modifier -> entityAttributeInstance.removeModifier(modifier.id()));
 								}
 							});
 
@@ -187,7 +190,7 @@ public abstract class LivingEntityMixin extends Entity {
 
 						if (!newStack.isEmpty()) {
 							Trinket trinket = TrinketsApi.getTrinket(newStack.getItem());
-							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(newStack, ref, entity, uuid);
+							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(newStack, ref, entity, identifier);
 							Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
 							Set<RegistryEntry<EntityAttribute>> toRemove = Sets.newHashSet();
 							for (RegistryEntry<EntityAttribute> attr : map.keySet()) {
@@ -203,7 +206,7 @@ public abstract class LivingEntityMixin extends Entity {
 							map.forEach((attribute, attributeModifier) -> {
 								EntityAttributeInstance entityAttributeInstance = this.getAttributes().getCustomInstance(attribute);
 								if (entityAttributeInstance != null) {
-									entityAttributeInstance.removeModifier(attributeModifier.uuid());
+									entityAttributeInstance.removeModifier(attributeModifier.id());
 									entityAttributeInstance.addTemporaryModifier(attributeModifier);
 								}
 

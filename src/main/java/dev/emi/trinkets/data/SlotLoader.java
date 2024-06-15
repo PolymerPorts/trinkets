@@ -40,7 +40,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 
 	public static final SlotLoader INSTANCE = new SlotLoader();
 
-	static final Identifier ID = new Identifier(TrinketsMain.MOD_ID, "slots");
+	static final Identifier ID = Identifier.of(TrinketsMain.MOD_ID, "slots");
 
 	private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int FILE_SUFFIX_LENGTH = ".json".length();
@@ -129,9 +129,9 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 	}
 
 	static class SlotData {
-		private static final Set<Identifier> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(new Identifier("trinkets", "all"));
-		private static final Set<Identifier> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(new Identifier("trinkets", "tag"));
-		private static final Set<Identifier> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(new Identifier("trinkets", "all"));
+		private static final Set<Identifier> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "all"));
+		private static final Set<Identifier> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "tag"));
+		private static final Set<Identifier> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "all"));
 
 		private int order = 0;
 		private int amount = -1;
@@ -145,11 +145,11 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 
 
 		SlotType create(String group, String name) {
-			Identifier finalIcon = new Identifier(icon);
-			//finalIcon = new Identifier(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
-			Set<Identifier> finalValidatorPredicates = validatorPredicates.stream().map(Identifier::new).collect(Collectors.toSet());
-			Set<Identifier> finalQuickMovePredicates = quickMovePredicates.stream().map(Identifier::new).collect(Collectors.toSet());
-			Set<Identifier> finalTooltipPredicates = tooltipPredicates.stream().map(Identifier::new).collect(Collectors.toSet());
+			Identifier finalIcon = Identifier.of(icon);
+			//finalIcon = Identifier.of(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
+			Set<Identifier> finalValidatorPredicates = validatorPredicates.stream().map(Identifier::of).collect(Collectors.toSet());
+			Set<Identifier> finalQuickMovePredicates = quickMovePredicates.stream().map(Identifier::of).collect(Collectors.toSet());
+			Set<Identifier> finalTooltipPredicates = tooltipPredicates.stream().map(Identifier::of).collect(Collectors.toSet());
 			if (finalValidatorPredicates.isEmpty()) {
 				finalValidatorPredicates = DEFAULT_VALIDATOR_PREDICATES;
 			}
