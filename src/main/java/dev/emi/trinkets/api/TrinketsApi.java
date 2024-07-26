@@ -1,12 +1,17 @@
 package dev.emi.trinkets.api;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Function3;
+import dev.emi.trinkets.TrinketModifiers;
 import dev.emi.trinkets.TrinketSlotTarget;
 import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.emi.trinkets.payload.BreakPayload;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistryV3;
@@ -45,7 +50,7 @@ public class TrinketsApi {
 	public static final ComponentKey<TrinketComponent> TRINKET_COMPONENT = ComponentRegistryV3.INSTANCE
 			.getOrCreate(Identifier.of(TrinketsMain.MOD_ID, "trinkets"), TrinketComponent.class);
 	private static final Map<Identifier, Function3<ItemStack, SlotReference, LivingEntity, TriState>> PREDICATES = new HashMap<>();
-	
+
 	private static final Map<Item, Trinket> TRINKETS = new HashMap<>();
 	private static final Trinket DEFAULT_TRINKET;
 
@@ -165,7 +170,7 @@ public class TrinketsApi {
 	public static boolean evaluatePredicateSet(Set<Identifier> set, ItemStack stack, SlotReference ref, LivingEntity entity) {
 		TriState state = TriState.DEFAULT;
 		for (Identifier id : set) {
-			var function = getTrinketPredicate(id);
+			Optional<Function3<ItemStack, SlotReference, LivingEntity, TriState>> function = getTrinketPredicate(id);
 			if (function.isPresent()) {
 				state = function.get().apply(stack, ref, entity);
 			}
@@ -177,7 +182,7 @@ public class TrinketsApi {
 	}
 
 	public static Enchantment.Definition withTrinketSlots(Enchantment.Definition definition, Set<String> slots) {
-		var def = new Enchantment.Definition(definition.supportedItems(), definition.primaryItems(), definition.weight(), definition.maxLevel(),
+		Enchantment.Definition def = new Enchantment.Definition(definition.supportedItems(), definition.primaryItems(), definition.weight(), definition.maxLevel(),
 				definition.minCost(), definition.maxCost(), definition.anvilCost(), definition.slots());
 
 		((TrinketSlotTarget) (Object) def).trinkets$slots(slots);
@@ -199,7 +204,7 @@ public class TrinketsApi {
 			return TriState.DEFAULT;
 		});
 		TrinketsApi.registerTrinketPredicate(Identifier.of("trinkets", "relevant"), (stack, ref, entity) -> {
-			var map = TrinketsApi.getTrinket(stack.getItem()).getModifiers(stack, ref, entity, SlotAttributes.getIdentifier(ref));
+			Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = TrinketModifiers.get(stack, ref, entity);
 			if (!map.isEmpty()) {
 				return TriState.TRUE;
 			}

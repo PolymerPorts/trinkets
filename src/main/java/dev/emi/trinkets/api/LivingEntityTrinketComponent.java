@@ -14,6 +14,9 @@ import java.util.function.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import dev.emi.trinkets.TrinketModifiers;
+import dev.emi.trinkets.TrinketPlayerScreenHandler;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
@@ -234,9 +237,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 		Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
 		this.forEach((ref, stack) -> {
 			if (!stack.isEmpty()) {
-				Identifier identifier = SlotAttributes.getIdentifier(ref);
-				Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
-				Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = trinket.getModifiers(stack, ref, entity, identifier);
+				Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = TrinketModifiers.get(stack, ref, entity);
 				for (RegistryEntry<EntityAttribute> entityAttribute : map.keySet()) {
 					if (entityAttribute.hasKeyAndValue() && entityAttribute.value() instanceof SlotAttributes.SlotEntityAttribute slotEntityAttribute) {
 						slotMap.putAll(slotEntityAttribute.slot, map.get(entityAttribute));

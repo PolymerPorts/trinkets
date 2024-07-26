@@ -5,14 +5,10 @@ import static com.mojang.brigadier.arguments.StringArgumentType.string;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-import dev.emi.trinkets.api.Trinket;
-import dev.emi.trinkets.api.TrinketItem;
-import dev.emi.trinkets.api.TrinketComponent;
-import dev.emi.trinkets.api.LivingEntityTrinketComponent;
-import dev.emi.trinkets.api.TrinketsApi;
-import dev.emi.trinkets.api.TrinketsAttributeModifiersComponent;
-import dev.emi.trinkets.api.SlotGroup;
-import dev.emi.trinkets.api.SlotType;
+import dev.emi.trinkets.api.*;
+import dev.emi.trinkets.payload.BreakPayload;
+import dev.emi.trinkets.payload.SyncInventoryPayload;
+import dev.emi.trinkets.payload.SyncSlotsPayload;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -46,6 +42,9 @@ import net.minecraft.text.Text;
 import net.minecraft.server.command.CommandManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
+
+import java.util.Map;
 
 public class TrinketsMain implements ModInitializer, EntityComponentInitializer {
 
@@ -108,9 +107,33 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 						)
 					)
 				)
+				.then(
+					literal("clear")
+					.executes(context -> {
+						try {
+							return clearCommand(context);
+						} catch (Exception e){
+							e.printStackTrace();
+							return -1;
+						}
+					})
+				)
 			));
 
 		TrinketsPoly.init();
+	}
+
+	private static int clearCommand(CommandContext<ServerCommandSource> context){
+		ServerPlayerEntity player = context.getSource().getPlayer();
+		if (player != null) {
+			TrinketComponent comp = TrinketsApi.getTrinketComponent(player).get();
+			for (Map.Entry<String, Map<String, TrinketInventory>> entry : comp.getInventory().entrySet()){
+				for (TrinketInventory inv : entry.getValue().values()){
+					inv.clear();
+				}
+			}
+		}
+		return 1;
 	}
 
 	private static int trinketsCommand(CommandContext<ServerCommandSource> context, int amount) {
