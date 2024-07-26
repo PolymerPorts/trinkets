@@ -3,30 +3,24 @@ package dev.emi.trinkets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import dev.emi.trinkets.api.SlotAttributes;
 import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketItem;
-import dev.emi.trinkets.api.client.TrinketRenderer;
-import dev.emi.trinkets.client.TrinketModel;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
+import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class TestTrinket2 extends TrinketItem {
+public class TestTrinket2 extends TrinketItem implements PolymerItem {
 
 	public TestTrinket2(Settings settings) {
 		super(settings);
@@ -42,5 +36,10 @@ public class TestTrinket2 extends TrinketItem {
 				0.1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 		modifiers.put(EntityAttributes.GENERIC_MOVEMENT_SPEED, speedModifier);
 		return modifiers;
+	}
+
+	@Override
+	public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+		return Items.FEATHER;
 	}
 }

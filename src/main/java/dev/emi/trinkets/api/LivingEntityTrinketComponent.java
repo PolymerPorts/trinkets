@@ -15,13 +15,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import dev.emi.trinkets.TrinketModifiers;
-import dev.emi.trinkets.TrinketPlayerScreenHandler;
-import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
-import net.fabricmc.fabric.api.util.NbtType;
-import net.minecraft.util.Identifier;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
