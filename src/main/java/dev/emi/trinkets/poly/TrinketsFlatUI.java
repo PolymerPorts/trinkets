@@ -76,9 +76,11 @@ public class TrinketsFlatUI extends SimpleGui {
     public void drawLines() {
         if (this.compact && !PolymerResourcePackUtils.hasMainPack(this.player)) {
             for (int x = 0; x < 5; x++) {
-                this.setSlot(9 * x + 4, Elements.FILLER);
+                this.setSlot(9 * x + 4, Elements.FILLER.get(false).hideTooltip());
             }
         }
+
+        var hasPack = PolymerResourcePackUtils.hasMainPack(this.player);
 
         for (int i = 0; i < this.displayPerPage; i++) {
             var y = page * this.displayPerPage + i;
@@ -88,11 +90,11 @@ public class TrinketsFlatUI extends SimpleGui {
                 if (this.compact) {
                     int base = i / 2 * 9 + ((i % 2) * 5);
                     for (int x = 0; x < 4; x++) {
-                        this.setSlot(base + x, Elements.FILLER);
+                        this.setSlot(base + x, Elements.FILLER.get(hasPack).hideTooltip());
                     }
                 } else {
                     for (int x = 0; x < 9; x++) {
-                        this.setSlot(i * 9 + x, Elements.FILLER);
+                        this.setSlot(i * 9 + x, Elements.FILLER.get(hasPack).hideTooltip());
                     }
                 }
                 this.cachedSize[i] = 0;
@@ -116,45 +118,49 @@ public class TrinketsFlatUI extends SimpleGui {
         var type = trinketInventory.getSlotType();
         this.cachedSize[index] = trinketInventory.size();
         this.currentlyDisplayed[index] = trinketInventory;
+        boolean hasPack = PolymerResourcePackUtils.hasMainPack(player);
 
         var base = this.compact ? index / 2 * 9 + ((index % 2) * 5) : index * 9;
         var invSize = this.compact ? 2 : 6;
 
         int slot = 0;
-        this.setSlot(base + slot++, GuiElementBuilder.from(type.getIconItem()).setName(type.getTranslation().formatted(Formatting.WHITE)).hideDefaultTooltip());
+        var icon = GuiElementBuilder.from(type.getIconItem())
+                .setName(type.getTranslation().formatted(Formatting.WHITE)).hideDefaultTooltip();
+        if (hasPack) {
+            icon.model(type.getIcon());
+        }
+        this.setSlot(base + slot++, icon);
 
         if (!this.compact) {
-            this.setSlot(base + slot++, Elements.FILLER);
+            this.setSlot(base + slot++, Elements.FILLER.get(hasPack).hideTooltip());
         }
 
-        boolean hasPack = PolymerResourcePackUtils.hasMainPack(player);
 
         if (trinketInventory.size() <= invSize) {
             for (int i = 0; i < invSize; i++) {
                 if (i < trinketInventory.size()) {
                     this.setSlotRedirect(base + slot++, new SurvivalTrinketSlot(trinketInventory, i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
                 } else {
-                    this.setSlot(base + slot++, Elements.FILLER);
+                    this.setSlot(base + slot++, Elements.FILLER.get(hasPack).hideTooltip());
                 }
             }
 
             if (hasPack) {
                 this.setSlot(base + slot++, ItemStack.EMPTY);
             } else {
-                this.setSlot(base + slot++, Elements.FILLER);
+                this.setSlot(base + slot++, Elements.FILLER.get(hasPack).hideTooltip());
             }
         } else {
             for (int i = 0; i < invSize; i++) {
                 if (subPage * invSize + i < trinketInventory.size()) {
                     this.setSlotRedirect(base + slot++, new SurvivalTrinketSlot(trinketInventory, subPage * invSize + i, 0, 0, this.component.getGroups().get(type.getGroup()), type, 0, true));
                 } else {
-                    this.setSlot(base + slot++, Elements.FILLER);
+                    this.setSlot(base + slot++, Elements.FILLER.get(hasPack).hideTooltip());
                 }
             }
 
             this.setSlot(base + slot++,
-                    new GuiElementBuilder(Elements.SUBPAGE.item())
-                            .setCustomModelData(Elements.SUBPAGE.value())
+                    Elements.SUBPAGE.get(hasPack)
                             .setName(Text.empty()
                                     .append(Text.literal("« ").formatted(Formatting.GRAY))
                                     .append((this.subPage[index] + 1) + "/" + ((trinketInventory.size() - 1) / invSize + 1))
@@ -186,18 +192,16 @@ public class TrinketsFlatUI extends SimpleGui {
     }
 
     private void drawNavbar() {
-        boolean addNavbarFiller = !PolymerResourcePackUtils.hasMainPack(this.player);
+        boolean hasPack = PolymerResourcePackUtils.hasMainPack(this.player);
+        var navabarFiller = Elements.FILLER_NAVBAR.get(hasPack).hideTooltip();
 
         if (this.inventories.size() > this.displayPerPage) {
 
-            if (addNavbarFiller) {
-                this.setSlot(5 * 9 + 0, Elements.FILLER_NAVBAR);
-                this.setSlot(5 * 9 + 1, Elements.FILLER_NAVBAR);
-            }
+            this.setSlot(5 * 9 + 0, navabarFiller);
+            this.setSlot(5 * 9 + 1, navabarFiller);
 
-            this.setSlot(5 * 9 + 2, new GuiElementBuilder(Elements.PREVIOUS.item())
-                    .setName(Text.translatable("createWorld.customize.custom.prev"))
-                    .setCustomModelData(Elements.PREVIOUS.value())
+            this.setSlot(5 * 9 + 2, Elements.PREVIOUS.get(hasPack)
+                    .setName(Text.translatable("spectatorMenu.previous_page"))
                     .hideDefaultTooltip()
                     .setCallback((x, y, z) -> {
                         this.page -= 1;
@@ -211,16 +215,15 @@ public class TrinketsFlatUI extends SimpleGui {
                         playClickSound(this.player);
                     })
             );
-            if (addNavbarFiller) {
-                this.setSlot(5 * 9 + 3, Elements.FILLER_NAVBAR);
-                this.setSlot(5 * 9 + 4, Elements.FILLER_NAVBAR);
-                this.setSlot(5 * 9 + 5, Elements.FILLER_NAVBAR);
-            }
 
-            this.setSlot(5 * 9 + 6, new GuiElementBuilder(Elements.NEXT.item())
-                    .setName(Text.translatable("createWorld.customize.custom.next"))
+            this.setSlot(5 * 9 + 3, navabarFiller);
+            this.setSlot(5 * 9 + 4, navabarFiller);
+            this.setSlot(5 * 9 + 5, navabarFiller);
+
+
+            this.setSlot(5 * 9 + 6, Elements.NEXT.get(hasPack)
+                    .setName(Text.translatable("spectatorMenu.next_page"))
                     .hideDefaultTooltip()
-                    .setCustomModelData(Elements.NEXT.value())
                     .setCallback((x, y, z) -> {
                         this.page += 1;
 
@@ -235,13 +238,11 @@ public class TrinketsFlatUI extends SimpleGui {
             );
 
 
-            if (addNavbarFiller) {
-                this.setSlot(5 * 9 + 7, Elements.FILLER_NAVBAR);
-                this.setSlot(5 * 9 + 8, Elements.FILLER_NAVBAR);
-            }
-        } else if (addNavbarFiller) {
+            this.setSlot(5 * 9 + 7, navabarFiller);
+            this.setSlot(5 * 9 + 8, navabarFiller);
+        } else {
             for (int i = 0; i < 9; i++) {
-                this.setSlot(5 * 9 + i, Elements.FILLER_NAVBAR);
+                this.setSlot(5 * 9 + i, navabarFiller);
             }
         }
     }

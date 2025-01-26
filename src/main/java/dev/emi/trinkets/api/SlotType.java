@@ -52,7 +52,7 @@ public class SlotType {
 		this.dropRule = dropRule;
 
 		this.itemIcon = itemIcon.copy();
-		this.itemIcon.set(DataComponentTypes.CUSTOM_MODEL_DATA, GuiModels.getOrCreate(icon, this.itemIcon.getItem()).asComponent());
+		GuiModels.createModel(this.icon);
 	}
 
 	public String getGroup() {
@@ -124,7 +124,7 @@ public class SlotType {
 		tag.put("TooltipPredicates", tooltipPredicateList);
 		tag.putString("DropRule", dropRule.toString());
 
-		tag.put("PolyPort$icon", this.itemIcon.encodeAllowEmpty(DynamicRegistryManager.of(Registries.REGISTRIES)));
+		tag.put("PolyPort$icon", this.itemIcon.toNbtAllowEmpty(DynamicRegistryManager.of(Registries.REGISTRIES)));
 
 		data.put("SlotData", tag);
 	}

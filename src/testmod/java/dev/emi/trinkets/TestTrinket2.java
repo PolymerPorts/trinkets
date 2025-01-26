@@ -17,6 +17,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.ArrayList;
 
@@ -39,7 +40,7 @@ public class TestTrinket2 extends TrinketItem implements PolymerItem {
 	}
 
 	@Override
-	public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+	public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
 		return Items.FEATHER;
 	}
 }
