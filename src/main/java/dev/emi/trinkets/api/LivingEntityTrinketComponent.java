@@ -18,6 +18,9 @@ import dev.emi.trinkets.TrinketModifiers;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -84,8 +87,8 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 							} else {
 								if (this.entity instanceof PlayerEntity player) {
 									player.getInventory().offerOrDrop(stack);
-								} else {
-									this.entity.dropStack(stack);
+								} else if (this.entity.getWorld() instanceof ServerWorld serverWorld) {
+									this.entity.dropStack(serverWorld, stack);
 								}
 							}
 						}
@@ -227,8 +230,10 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				}
 			}
 		}
-		for (ItemStack itemStack : dropped) {
-			this.entity.dropStack(itemStack);
+		if (this.entity.getWorld() instanceof ServerWorld serverWorld) {
+			for (ItemStack itemStack : dropped) {
+				this.entity.dropStack(serverWorld, itemStack);
+			}
 		}
 		Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
 		this.forEach((ref, stack) -> {
@@ -265,7 +270,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				NbtList list = new NbtList();
 				TrinketInventory inv = slot.getValue();
 				for (int i = 0; i < inv.size(); i++) {
-					NbtCompound c = (NbtCompound) inv.getStack(i).encodeAllowEmpty(lookup);
+					NbtCompound c = (NbtCompound) inv.getStack(i).toNbtAllowEmpty(lookup);
 					list.add(c);
 				}
 				slotTag.put("Metadata", this.syncing ? inv.getSyncTag() : inv.toTag());

@@ -40,7 +40,7 @@ public class TestTrinket extends TrinketItem implements PolymerItem {
 		Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> modifiers = super.getModifiers(stack, slot, entity, id);
 		EntityAttributeModifier speedModifier = new EntityAttributeModifier(id.withSuffixedPath("trinkets-testmod/movement_speed"),
 				0.4, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
-		modifiers.put(EntityAttributes.GENERIC_MOVEMENT_SPEED, speedModifier);
+		modifiers.put(EntityAttributes.MOVEMENT_SPEED, speedModifier);
 		SlotAttributes.addSlotModifier(modifiers, "offhand/ring", id.withSuffixedPath("trinkets-testmod/ring_slot"), 6, EntityAttributeModifier.Operation.ADD_VALUE);
 		SlotAttributes.addSlotModifier(modifiers, "hand/glove", id.withSuffixedPath("trinkets-testmod/glove_slot"), 1, EntityAttributeModifier.Operation.ADD_VALUE);
 		return modifiers;
