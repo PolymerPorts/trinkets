@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -18,6 +18,7 @@ import dev.emi.trinkets.TrinketModifiers;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
@@ -195,22 +196,22 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 	public void readFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
 		DefaultedList<ItemStack> dropped = DefaultedList.of();
 		for (String groupKey : tag.getKeys()) {
-			NbtCompound groupTag = tag.getCompound(groupKey);
+			NbtCompound groupTag = tag.getCompoundOrEmpty(groupKey);
 			if (groupTag != null) {
 				Map<String, TrinketInventory> groupSlots = this.inventory.get(groupKey);
 				if (groupSlots != null) {
 					for (String slotKey : groupTag.getKeys()) {
-						NbtCompound slotTag = groupTag.getCompound(slotKey);
-						NbtList list = slotTag.getList("Items", NbtElement.COMPOUND_TYPE);
+						NbtCompound slotTag = groupTag.getCompoundOrEmpty(slotKey);
+						NbtList list = slotTag.getListOrEmpty("Items");
 						TrinketInventory inv = groupSlots.get(slotKey);
 
 						if (inv != null) {
-							inv.fromTag(slotTag.getCompound("Metadata"));
+							inv.fromTag(slotTag.getCompoundOrEmpty("Metadata"));
 						}
 
 						for (int i = 0; i < list.size(); i++) {
-							NbtCompound c = list.getCompound(i);
-							ItemStack stack = ItemStack.fromNbtOrEmpty(lookup, c);
+							Optional<NbtCompound> c = list.getCompound(i);
+							ItemStack stack = c.isPresent() && !c.get().isEmpty() ? ItemStack.fromNbt(lookup, c.get()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
 							if (inv != null && i < inv.size()) {
 								inv.setStack(i, stack);
 							} else {
@@ -220,11 +221,12 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 					}
 				} else {
 					for (String slotKey : groupTag.getKeys()) {
-						NbtCompound slotTag = groupTag.getCompound(slotKey);
-						NbtList list = slotTag.getList("Items", NbtElement.COMPOUND_TYPE);
+						NbtCompound slotTag = groupTag.getCompoundOrEmpty(slotKey);
+						NbtList list = slotTag.getListOrEmpty("Items");
 						for (int i = 0; i < list.size(); i++) {
-							NbtCompound c = list.getCompound(i);
-							dropped.add(ItemStack.fromNbtOrEmpty(lookup, c));
+							Optional<NbtCompound> c = list.getCompound(i);
+							ItemStack stack = c.isPresent() && !c.get().isEmpty() ? ItemStack.fromNbt(lookup, c.get()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+							dropped.add(stack);
 						}
 					}
 				}
@@ -270,7 +272,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				NbtList list = new NbtList();
 				TrinketInventory inv = slot.getValue();
 				for (int i = 0; i < inv.size(); i++) {
-					NbtCompound c = (NbtCompound) inv.getStack(i).toNbtAllowEmpty(lookup);
+					NbtCompound c = inv.getStack(i).isEmpty() ? new NbtCompound() : (NbtCompound) inv.getStack(i).toNbt(lookup);
 					list.add(c);
 				}
 				slotTag.put("Metadata", this.syncing ? inv.getSyncTag() : inv.toTag());
