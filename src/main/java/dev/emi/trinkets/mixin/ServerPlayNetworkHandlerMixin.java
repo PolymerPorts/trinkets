@@ -24,8 +24,8 @@ public class ServerPlayNetworkHandlerMixin {
 	
 	@Inject(method = "onClickSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;disableSyncing()V", shift = At.Shift.BEFORE), cancellable = true)
 	private void polyport_trinkets_handleClick(ClickSlotC2SPacket packet, CallbackInfo ci) {
-		if (packet.getSyncId() == this.player.playerScreenHandler.syncId && packet.getSlot() >= 5 && packet.getSlot() <= 8 && packet.getActionType() == SlotActionType.PICKUP && packet.getButton() == 1) {
-			if (switch (packet.getSlot()) {
+		if (packet.syncId() == this.player.playerScreenHandler.syncId && packet.slot() >= 5 && packet.slot() <= 8 && packet.actionType() == SlotActionType.PICKUP && packet.button() == 1) {
+			if (switch (packet.slot()) {
 				case 5 -> TrinketsPoly.CONFIG.helmetSlot;
 				case 6 -> TrinketsPoly.CONFIG.chestplateSlot;
 				case 7 -> TrinketsPoly.CONFIG.leggingsSlot;

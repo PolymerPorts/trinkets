@@ -124,8 +124,9 @@ public class SlotType {
 		tag.put("TooltipPredicates", tooltipPredicateList);
 		tag.putString("DropRule", dropRule.toString());
 
-		tag.put("PolyPort$icon", this.itemIcon.toNbtAllowEmpty(DynamicRegistryManager.of(Registries.REGISTRIES)));
-
+		if (!this.itemIcon.isEmpty()) {
+			tag.put("PolyPort$icon", this.itemIcon.toNbt(DynamicRegistryManager.of(Registries.REGISTRIES)));
+		}
 		data.put("SlotData", tag);
 	}
 
@@ -167,7 +168,8 @@ public class SlotType {
 			dropRule = TrinketEnums.DropRule.valueOf(dropRuleName);
 		}
 
-		var itemIcon = ItemStack.fromNbtOrEmpty(DynamicRegistryManager.of(Registries.REGISTRIES), slotData.getCompound("PolyPort$icon"));
+		var itemIcon = slotData.getCompound("PolyPort$icon").map(x -> ItemStack.fromNbt(DynamicRegistryManager.of(Registries.REGISTRIES), x).orElse(ItemStack.EMPTY))
+				.orElse(ItemStack.EMPTY);
 		if (itemIcon == ItemStack.EMPTY) {
 			itemIcon = Items.IRON_CHESTPLATE.getDefaultStack();
 		}

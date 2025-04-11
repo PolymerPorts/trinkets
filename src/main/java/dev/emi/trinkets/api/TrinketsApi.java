@@ -8,6 +8,7 @@ import dev.emi.trinkets.TrinketSlotTarget;
 import dev.emi.trinkets.TrinketsMain;
 import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.emi.trinkets.payload.BreakPayload;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -95,8 +96,8 @@ public class TrinketsApi {
 					vec3d2 = vec3d2.add(entity.getX(), entity.getEyeY(), entity.getZ());
 					world.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, 0, vec3d.x, vec3d.y + 0.05D, vec3d.z, 1);
 				}
-				if (!entity.isSilent()) {
-					world.playSoundFromEntity(null, entity, Registries.SOUND_EVENT.getEntry(SoundEvents.ENTITY_ITEM_BREAK), entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
+				if (!entity.isSilent() && stack.contains(DataComponentTypes.BREAK_SOUND)) {
+					world.playSoundFromEntity(null, entity, stack.get(DataComponentTypes.BREAK_SOUND), entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
 				}
 			}
 		}
