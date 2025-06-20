@@ -4,6 +4,7 @@ package dev.emi.trinkets.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.emi.trinkets.TrinketPlayerScreenHandler;
 import dev.emi.trinkets.api.TrinketInventory;
+import dev.emi.trinkets.api.TrinketSaveData;
 import dev.emi.trinkets.api.TrinketsApi;
 import dev.emi.trinkets.data.EntitySlotLoader;
 
@@ -14,7 +15,6 @@ import java.util.Set;
 import dev.emi.trinkets.payload.SyncInventoryPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
@@ -38,11 +38,11 @@ public abstract class PlayerManagerMixin {
 		EntitySlotLoader.SERVER.sync(player);
 		((TrinketPlayerScreenHandler) player.playerScreenHandler).trinkets$updateTrinketSlots(false);
 		TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
-			Map<String, NbtCompound> tag = new HashMap<>();
+			Map<String, TrinketSaveData.Metadata> tag = new HashMap<>();
 			Set<TrinketInventory> inventoriesToSend = trinkets.getTrackingUpdates();
 
 			for (TrinketInventory trinketInventory : inventoriesToSend) {
-				tag.put(trinketInventory.getSlotType().getId(), trinketInventory.getSyncTag());
+				tag.put(trinketInventory.getSlotType().getId(), trinketInventory.getSyncMetadata());
 			}
 			ServerPlayNetworking.send(player, new SyncInventoryPayload(player.getId(), Map.of(), tag));
 			inventoriesToSend.clear();
