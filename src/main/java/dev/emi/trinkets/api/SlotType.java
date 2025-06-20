@@ -6,10 +6,7 @@ import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.*;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.MutableText;
@@ -125,7 +122,7 @@ public class SlotType {
 		tag.putString("DropRule", dropRule.toString());
 
 		if (!this.itemIcon.isEmpty()) {
-			tag.put("PolyPort$icon", this.itemIcon.toNbt(DynamicRegistryManager.of(Registries.REGISTRIES)));
+			tag.put("PolyPort$icon", ItemStack.OPTIONAL_CODEC, DynamicRegistryManager.of(Registries.REGISTRIES).getOps(NbtOps.INSTANCE), this.itemIcon);
 		}
 		data.put("SlotData", tag);
 	}
@@ -168,8 +165,7 @@ public class SlotType {
 			dropRule = TrinketEnums.DropRule.valueOf(dropRuleName);
 		}
 
-		var itemIcon = slotData.getCompound("PolyPort$icon").map(x -> ItemStack.fromNbt(DynamicRegistryManager.of(Registries.REGISTRIES), x).orElse(ItemStack.EMPTY))
-				.orElse(ItemStack.EMPTY);
+		var itemIcon = slotData.get("PolyPort$icon", ItemStack.OPTIONAL_CODEC, DynamicRegistryManager.of(Registries.REGISTRIES).getOps(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
 		if (itemIcon == ItemStack.EMPTY) {
 			itemIcon = Items.IRON_CHESTPLATE.getDefaultStack();
 		}

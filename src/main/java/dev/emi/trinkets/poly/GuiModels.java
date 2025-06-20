@@ -6,9 +6,15 @@ import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import eu.pb4.polymer.resourcepack.extras.api.format.item.ItemAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.item.model.BasicItemModel;
 import eu.pb4.polymer.resourcepack.extras.api.format.item.model.ItemModel;
+import eu.pb4.polymer.resourcepack.extras.api.format.model.GuiLight;
+import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
+import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,25 +52,16 @@ public class GuiModels {
             polymerRPBuilder.addData("assets/" + id.getNamespace() + "/models/" + id.getPath() + ".json", json.getBytes(StandardCharsets.UTF_8));
 
             polymerRPBuilder.addData("assets/" + id.getNamespace() + "/items/" + id.getPath() + ".json",
-                    new ItemAsset(new BasicItemModel(id), ItemAsset.Properties.DEFAULT));
+                    new ItemAsset(new BasicItemModel(id), new ItemAsset.Properties(true, true)));
         }
         {
-            var json = """
-              {
-              "parent": "minecraft:item/handheld",
-              "textures": {
-                "layer0": "trinkets:gui/polybuttons/filler"
-              },
-              "display": {
-                "gui": {
-                    "rotation": [ 0, 0, 0 ],
-                    "translation": [ 0, 0, 0 ],
-                    "scale": [ 1.12, 1.12, 1.12 ]
-                }
-              }
-            }
-            """;
-            polymerRPBuilder.addData("assets/trinkets/models/gui/polybuttons/filler.json", json.getBytes(StandardCharsets.UTF_8));
+            polymerRPBuilder.addData("assets/trinkets/models/gui/polybuttons/filler.json", ModelAsset.builder()
+                    .guiLight(GuiLight.FRONT)
+                    .texture("texture", "trinkets:gui/polybuttons/filler")
+                    .element(new Vec3d(-1,-1,-1), new Vec3d(17,17,17), b -> Arrays.stream(Direction.values())
+                            .forEach(d -> b.face(d, 0, 0,16, 16,"texture")))
+                    .build()
+            );
         }
     }
 }
