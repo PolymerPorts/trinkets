@@ -2,6 +2,7 @@ package dev.emi.trinkets.mixin;
 
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import dev.emi.trinkets.CreativeTrinketScreen;
 import dev.emi.trinkets.TrinketScreenManager;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
@@ -75,6 +76,13 @@ public abstract class HandledScreenMixin extends Screen {
 				context.drawTexture(RenderPipelines.GUI_TEXTURED, slotTextureId, slot.x, slot.y, 0, 0, 16, 16, 16, 16);
 				context.drawTexture(RenderPipelines.GUI_TEXTURED, MORE_SLOTS, slot.x - 1, slot.y - 1, 4, 4, 18, 18, 256, 256);
 			}
+		}
+	}
+
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;renderMain(Lnet/minecraft/client/gui/DrawContext;IIF)V", shift = At.Shift.AFTER), method = "render")
+	private void renderCreativeSlots(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+		if (this instanceof CreativeTrinketScreen screen) {
+			screen.trinkets$renderCreative(context, mouseX, mouseY, deltaTicks);
 		}
 	}
 

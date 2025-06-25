@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import dev.emi.trinkets.CreativeTrinketScreen;
 import dev.emi.trinkets.CreativeTrinketSlot;
 import dev.emi.trinkets.Point;
 import dev.emi.trinkets.SurvivalTrinketSlot;
@@ -37,7 +38,7 @@ import net.minecraft.util.collection.DefaultedList;
  * @author Emi
  */
 @Mixin(CreativeInventoryScreen.class)
-public abstract class CreativeInventoryScreenMixin extends HandledScreen<CreativeScreenHandler> implements TrinketScreen {
+public abstract class CreativeInventoryScreenMixin extends HandledScreen<CreativeScreenHandler> implements TrinketScreen, CreativeTrinketScreen {
 	@Unique
 	private static final Identifier SLOT_HIGHLIGHT_FRONT_TEXTURE = Identifier.ofVanilla("container/slot_highlight_front");
 	@Shadow
@@ -109,9 +110,8 @@ public abstract class CreativeInventoryScreenMixin extends HandledScreen<Creativ
 		}
 	}
 
-	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;render(Lnet/minecraft/client/gui/DrawContext;IIF)V", shift = At.Shift.AFTER),
-			method = "render")
-	private void drawForeground(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+	@Override
+	public void trinkets$renderCreative(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
 			context.getMatrices().pushMatrix();
 			context.getMatrices().translate(this.x, this.y);
