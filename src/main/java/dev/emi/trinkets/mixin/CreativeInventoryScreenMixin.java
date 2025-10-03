@@ -130,7 +130,7 @@ public abstract class CreativeInventoryScreenMixin extends HandledScreen<Creativ
 	}
 
 	@Inject(at = @At("HEAD"), method = "isClickOutsideBounds", cancellable = true)
-	private void isClickOutsideBounds(double mouseX, double mouseY, int left, int top, int button, CallbackInfoReturnable<Boolean> info) {
+	private void isClickOutsideBounds(double mouseX, double mouseY, int left, int top, CallbackInfoReturnable<Boolean> info) {
 		if (selectedTab.getType() == ItemGroup.Type.INVENTORY && TrinketScreenManager.isClickInsideTrinketBounds(mouseX, mouseY)) {
 			info.setReturnValue(false);
 		}

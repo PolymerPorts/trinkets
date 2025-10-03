@@ -30,7 +30,7 @@ public abstract class RecipeBookScreenMixin extends HandledScreen<AbstractRecipe
 
 
     @Inject(at = @At("HEAD"), method = "isClickOutsideBounds", cancellable = true)
-    private void isClickOutsideBounds(double mouseX, double mouseY, int left, int top, int button, CallbackInfoReturnable<Boolean> info) {
+    private void isClickOutsideBounds(double mouseX, double mouseY, int left, int top, CallbackInfoReturnable<Boolean> info) {
         if (TrinketScreenManager.isClickInsideTrinketBounds(mouseX, mouseY)) {
             info.setReturnValue(false);
         }

@@ -181,7 +181,7 @@ public class TrinketInventory implements Inventory {
 					if (i < newStacks.size()) {
 						newStacks.set(i, stack);
 					} else {
-						if (entity.getWorld() instanceof ServerWorld serverWorld) {
+						if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
 							entity.dropStack(serverWorld, stack);
 						}
 					}
