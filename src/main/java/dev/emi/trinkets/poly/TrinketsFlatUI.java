@@ -15,6 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Style;
+import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -57,7 +58,7 @@ public class TrinketsFlatUI extends SimpleGui {
 
         this.setTitle(PolymerResourcePackUtils.hasMainPack(player)
                 ? Text.empty().append(Text.literal(compact ? "-1." : "-0.")
-                        .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(Identifier.of(TrinketsMain.MOD_ID, "gui"))))
+                        .setStyle(Style.EMPTY.withColor(Formatting.WHITE).withFont(new StyleSpriteSource.Font(Identifier.of(TrinketsMain.MOD_ID, "gui")))))
                         .append(Text.translatable("trinkets.name"))
                 : Text.translatable("trinkets.name")
         );

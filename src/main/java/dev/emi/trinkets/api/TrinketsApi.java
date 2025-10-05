@@ -83,22 +83,20 @@ public class TrinketsApi {
 	 * called in the callback of {@link ItemStack#damage(int, ServerWorld, ServerPlayerEntity, Consumer)}
 	 */
 	public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
-		if (!entity.getWorld().isClient) {
-			if (entity.getWorld() instanceof ServerWorld world) {
-				for(int i = 0; i < 5; ++i) {
-					Vec3d vec3d = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
-					vec3d = vec3d.rotateX(-entity.getPitch() * 0.017453292F);
-					vec3d = vec3d.rotateY(-entity.getYaw() * 0.017453292F);
-					double d = (double)(-entity.getRandom().nextFloat()) * 0.6D - 0.3D;
-					Vec3d vec3d2 = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.3D, d, 0.6D);
-					vec3d2 = vec3d2.rotateX(-entity.getPitch() * 0.017453292F);
-					vec3d2 = vec3d2.rotateY(-entity.getYaw() * 0.017453292F);
-					vec3d2 = vec3d2.add(entity.getX(), entity.getEyeY(), entity.getZ());
-					world.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, 0, vec3d.x, vec3d.y + 0.05D, vec3d.z, 1);
-				}
-				if (!entity.isSilent() && stack.contains(DataComponentTypes.BREAK_SOUND)) {
-					world.playSoundFromEntity(null, entity, stack.get(DataComponentTypes.BREAK_SOUND), entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
-				}
+		if (entity.getEntityWorld() instanceof ServerWorld world) {
+			for(int i = 0; i < 5; ++i) {
+				Vec3d vec3d = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
+				vec3d = vec3d.rotateX(-entity.getPitch() * 0.017453292F);
+				vec3d = vec3d.rotateY(-entity.getYaw() * 0.017453292F);
+				double d = (double)(-entity.getRandom().nextFloat()) * 0.6D - 0.3D;
+				Vec3d vec3d2 = new Vec3d(((double)entity.getRandom().nextFloat() - 0.5D) * 0.3D, d, 0.6D);
+				vec3d2 = vec3d2.rotateX(-entity.getPitch() * 0.017453292F);
+				vec3d2 = vec3d2.rotateY(-entity.getYaw() * 0.017453292F);
+				vec3d2 = vec3d2.add(entity.getX(), entity.getEyeY(), entity.getZ());
+				world.spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, 0, vec3d.x, vec3d.y + 0.05D, vec3d.z, 1);
+			}
+			if (!entity.isSilent() && stack.contains(DataComponentTypes.BREAK_SOUND)) {
+				world.playSoundFromEntity(null, entity, stack.get(DataComponentTypes.BREAK_SOUND), entity.getSoundCategory(), 0.8F, 0.8F + world.random.nextFloat() * 0.4F, world.random.nextInt());
 			}
 		}
 	}
