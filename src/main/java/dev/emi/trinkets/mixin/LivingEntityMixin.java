@@ -131,7 +131,7 @@ public abstract class LivingEntityMixin extends Entity {
 		// Mimic player drop behavior for only players
 		if (((Entity) this) instanceof PlayerEntity player) {
 			ItemEntity entity = player.dropItem(stack, true, false);
-		} else if (this.getWorld() instanceof ServerWorld serverWorld) {
+		} else if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
 			ItemEntity entity = dropStack(serverWorld, stack);
 		}
 	}
@@ -161,8 +161,8 @@ public abstract class LivingEntityMixin extends Entity {
 					TrinketsApi.getTrinket(newStack.getItem()).onEquip(newStack, ref, entity);
 					TrinketEquipCallback.EVENT.invoker().onEquip(newStack, ref, entity);
 
-					World world = this.getWorld();
-					if (!world.isClient) {
+					World world = this.getEntityWorld();
+					if (!world.isClient()) {
 						contentUpdates.put(newRef, newStackCopy);
 
 						if (!oldStack.isEmpty()) {

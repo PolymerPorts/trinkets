@@ -94,7 +94,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 							} else {
 								if (this.entity instanceof PlayerEntity player) {
 									player.getInventory().offerOrDrop(stack);
-								} else if (this.entity.getWorld() instanceof ServerWorld serverWorld) {
+								} else if (this.entity.getEntityWorld() instanceof ServerWorld serverWorld) {
 									this.entity.dropStack(serverWorld, stack);
 								}
 							}
@@ -234,7 +234,7 @@ public class LivingEntityTrinketComponent implements TrinketComponent, Component
 				}
 			}
 		}
-		if (this.entity.getWorld() instanceof ServerWorld serverWorld) {
+		if (this.entity.getEntityWorld() instanceof ServerWorld serverWorld) {
 			for (ItemStack itemStack : dropped) {
 				this.entity.dropStack(serverWorld, itemStack);
 			}

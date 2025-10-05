@@ -152,7 +152,7 @@ public class TrinketsApi {
 	 */
 	public static Map<String, SlotGroup> getEntitySlots(Entity entity) {
 		if (entity != null) {
-			return getEntitySlots(entity.getWorld(), entity.getType());
+			return getEntitySlots(entity.getEntityWorld(), entity.getType());
 		}
 		return ImmutableMap.of();
 	}
