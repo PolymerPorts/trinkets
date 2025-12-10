@@ -51,14 +51,14 @@ public abstract class HandledScreenMixin extends Screen {
 		}
 	}
 
-	@WrapWithCondition(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"),
+	@WrapWithCondition(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;II)V"),
 			method = "drawSlots")
-	private boolean preventDrawingSlots(HandledScreen instance, DrawContext context, Slot slot) {
+	private boolean preventDrawingSlots(HandledScreen instance, DrawContext context, Slot slot, int mouseX, int mouseY) {
 		return !(slot instanceof TrinketSlot trinketSlot) || !trinketSlot.renderAfterRegularSlots();
 	}
 
 	@Inject(at = @At("HEAD"), method = "drawSlot")
-	private void drawSlotBackground(DrawContext context, Slot slot, CallbackInfo info) {
+	private void drawSlotBackground(DrawContext context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
 		if (slot instanceof TrinketSlot ts) {
 			assert this.client != null;
 			Identifier slotTextureId = ts.getBackgroundIdentifier();

@@ -119,7 +119,7 @@ public abstract class CreativeInventoryScreenMixin extends HandledScreen<Creativ
 
 			for (Slot slot : this.handler.slots) {
 				if (slot instanceof TrinketSlot trinketSlot && trinketSlot.renderAfterRegularSlots() && slot.isEnabled()) {
-					this.drawSlot(context, slot);
+					this.drawSlot(context, slot, mouseX, mouseY);
 					if (slot == this.focusedSlot && slot.canBeHighlighted()) {
 						context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_FRONT_TEXTURE, this.focusedSlot.x - 4, this.focusedSlot.y - 4, 24, 24);
 					}
