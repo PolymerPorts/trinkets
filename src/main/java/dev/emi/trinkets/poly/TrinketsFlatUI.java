@@ -10,6 +10,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.PlaySoundFromEntityS2CPacket;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -250,6 +251,8 @@ public class TrinketsFlatUI extends SimpleGui {
 
 
     public static void playClickSound(ServerPlayerEntity player) {
-        player.playSoundToPlayer(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 0.7f, 1);
+        player.networkHandler.sendPacket(new PlaySoundFromEntityS2CPacket(
+                SoundEvents.UI_BUTTON_CLICK, SoundCategory.UI, player, 0.7f, 1, player.getRandom().nextLong()
+        ));
     }
 }

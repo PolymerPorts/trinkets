@@ -76,7 +76,6 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 			dispatcher.register(literal("trinkets")
                 .executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))
                 .then(CommandManager.literal("compact").executes(TrinketsPoly::toggleCompactCommand))
-                .requires(source -> source.hasPermissionLevel(2))
 				.then(
 					literal("set")
                     .requires(CommandManager.requirePermissionLevel(CommandManager.GAMEMASTERS_CHECK))
