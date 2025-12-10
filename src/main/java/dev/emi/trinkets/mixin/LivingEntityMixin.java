@@ -47,8 +47,7 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.World;
 
 /**
@@ -85,7 +84,7 @@ public abstract class LivingEntityMixin extends Entity {
 	private void dropInventory(ServerWorld world, CallbackInfo info) {
 		LivingEntity entity = (LivingEntity) (Object) this;
 
-		boolean keepInv = world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY);
+		boolean keepInv = world.getGameRules().getValue(GameRules.KEEP_INVENTORY);
 		TrinketsApi.getTrinketComponent(entity).ifPresent(trinkets -> trinkets.forEach((ref, stack) -> {
 			if (stack.isEmpty()) {
 				return;

@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
@@ -72,12 +73,13 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 		Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
-				dispatcher.register(literal("trinkets")
-				.executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))
-				.then(CommandManager.literal("compact").executes(TrinketsPoly::toggleCompactCommand))
+			dispatcher.register(literal("trinkets")
+                .executes(ctx -> TrinketsFlatUI.open(ctx.getSource().getPlayerOrThrow()))
+                .then(CommandManager.literal("compact").executes(TrinketsPoly::toggleCompactCommand))
+                .requires(source -> source.hasPermissionLevel(2))
 				.then(
 					literal("set")
-					.requires(source -> source.hasPermissionLevel(2))
+                    .requires(CommandManager.requirePermissionLevel(CommandManager.GAMEMASTERS_CHECK))
 					.then(
 						argument("group", string())
 						.then(
@@ -109,7 +111,8 @@ public class TrinketsMain implements ModInitializer, EntityComponentInitializer 
 				)
 				.then(
 					literal("clear")
-					.executes(context -> {
+                    .requires(CommandManager.requirePermissionLevel(CommandManager.GAMEMASTERS_CHECK))
+                    .executes(context -> {
 						try {
 							return clearCommand(context);
 						} catch (Exception e){

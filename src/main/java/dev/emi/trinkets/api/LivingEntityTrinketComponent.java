@@ -19,7 +19,6 @@ import dev.emi.trinkets.TrinketModifiers;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.ladysnake.cca.api.v3.component.Component;
 import net.minecraft.server.world.ServerWorld;
