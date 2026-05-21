@@ -8,24 +8,22 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import java.util.function.Consumer;
-
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.equipment.Equippable;
 
 public interface Trinket {
 
@@ -80,7 +78,7 @@ public interface Trinket {
 	 * @return Whether the stack can be unequipped
 	 */
 	default boolean canUnequip(ItemStack stack, SlotReference slot, LivingEntity entity) {
-		return !EnchantmentHelper.hasAnyEnchantmentsWith(stack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE) || (entity instanceof PlayerEntity player && player.isCreative());
+		return !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE) || (entity instanceof Player player && player.isCreative());
 	}
 
 	/**
@@ -103,12 +101,12 @@ public interface Trinket {
 	 * @param entity The entity that is equipping the stack
 	 * @return The {@link SoundEvent} to play for equipping
 	 */
-	default RegistryEntry<SoundEvent> getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
-		EquippableComponent component = stack.get(DataComponentTypes.EQUIPPABLE);
+	default Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
+		Equippable component = stack.get(DataComponents.EQUIPPABLE);
 		if (component != null) {
 			return component.equipSound();
 		}
-		return Registries.SOUND_EVENT.getEntry(SoundEvents.INTENTIONALLY_EMPTY);
+		return BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.EMPTY);
 	}
 
 	/**
@@ -125,13 +123,13 @@ public interface Trinket {
 	 * @return the Multimap with any needed entries added
 	 * @see SlotAttributes#addSlotModifier
 	 */
-	default Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, Identifier slotIdentifier) {
+	default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, Identifier slotIdentifier) {
 		return Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
 	}
 
 	/**
 	 * Called by Trinkets when a trinket is broken on the client if {@link TrinketsApi#onTrinketBroken}
-	 * is called by the callback in {@link ItemStack#damage(int, ServerWorld, ServerPlayerEntity, Consumer)} server side
+	 * is called by the callback in {@link ItemStack#hurtAndBreak(int, ServerLevel, ServerPlayer, Consumer)} server side
 	 * <p>
 	 * The default implementation works the same as breaking vanilla equipment, a sound is played and
 	 * particles are spawned based on the item

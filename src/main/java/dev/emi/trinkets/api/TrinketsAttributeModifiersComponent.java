@@ -6,16 +6,15 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import java.util.List;
 import java.util.Optional;
-
-import net.minecraft.component.ComponentType;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean showInTooltip) {
 	public static final TrinketsAttributeModifiersComponent DEFAULT = new TrinketsAttributeModifiersComponent(List.of(), true);
@@ -29,14 +28,14 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
 		return new TrinketsAttributeModifiersComponent(attributeModifiers, true);
 	});
 
-	public static final PacketCodec<RegistryByteBuf, TrinketsAttributeModifiersComponent> PACKET_CODEC = PacketCodec.tuple(
-			Entry.PACKET_CODEC.collect(PacketCodecs.toList()),
+	public static final StreamCodec<RegistryFriendlyByteBuf, TrinketsAttributeModifiersComponent> PACKET_CODEC = StreamCodec.composite(
+			Entry.PACKET_CODEC.apply(ByteBufCodecs.list()),
 			TrinketsAttributeModifiersComponent::modifiers,
-			PacketCodecs.BOOLEAN,
+			ByteBufCodecs.BOOL,
 			TrinketsAttributeModifiersComponent::showInTooltip,
 			TrinketsAttributeModifiersComponent::new);
 
-	public static final ComponentType<TrinketsAttributeModifiersComponent> TYPE = ComponentType.<TrinketsAttributeModifiersComponent>builder().codec(CODEC).packetCodec(PACKET_CODEC).build();
+	public static final DataComponentType<TrinketsAttributeModifiersComponent> TYPE = DataComponentType.<TrinketsAttributeModifiersComponent>builder().persistent(CODEC).networkSynchronized(PACKET_CODEC).build();
 
 	public TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean showInTooltip) {
 		this.modifiers = modifiers;
@@ -65,15 +64,15 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
 		Builder() {
 		}
 
-		public Builder add(RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier modifier) {
+		public Builder add(Holder<Attribute> attribute, AttributeModifier modifier) {
 			return add(attribute, modifier, Optional.empty());
 		}
 
-		public Builder add(RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier modifier, String slot) {
+		public Builder add(Holder<Attribute> attribute, AttributeModifier modifier, String slot) {
 			return add(attribute, modifier, Optional.of(slot));
 		}
 
-		public Builder add(RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier modifier, Optional<String> slot) {
+		public Builder add(Holder<Attribute> attribute, AttributeModifier modifier, Optional<String> slot) {
 			this.entries.add(new Entry (attribute, modifier, slot));
 			return this;
 		}
@@ -83,18 +82,18 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
 		}
 	}
 
-	public record Entry(RegistryEntry<EntityAttribute> attribute, EntityAttributeModifier modifier, Optional<String> slot) {
+	public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, Optional<String> slot) {
 		public static final Codec<Entry> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
-				Registries.ATTRIBUTE.getEntryCodec().fieldOf("type").forGetter(Entry::attribute),
-				EntityAttributeModifier.MAP_CODEC.forGetter(Entry::modifier),
+				BuiltInRegistries.ATTRIBUTE.holderByNameCodec().fieldOf("type").forGetter(Entry::attribute),
+				AttributeModifier.MAP_CODEC.forGetter(Entry::modifier),
 				Codec.STRING.optionalFieldOf("slot").forGetter(Entry::slot)
 			).apply(instance, Entry::new));
-		public static final PacketCodec<RegistryByteBuf, Entry> PACKET_CODEC = PacketCodec.tuple(
-				PacketCodecs.registryEntry(RegistryKeys.ATTRIBUTE),
+		public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
+				ByteBufCodecs.holderRegistry(Registries.ATTRIBUTE),
 				Entry::attribute,
-				EntityAttributeModifier.PACKET_CODEC,
+				AttributeModifier.STREAM_CODEC,
 				Entry::modifier,
-				PacketCodecs.optional(PacketCodecs.STRING),
+				ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8),
 				Entry::slot,
 				Entry::new);
 	}

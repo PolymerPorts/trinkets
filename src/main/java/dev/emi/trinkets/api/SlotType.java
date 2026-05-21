@@ -3,16 +3,14 @@ package dev.emi.trinkets.api;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.poly.GuiModels;
 import net.fabricmc.fabric.api.util.NbtType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +31,7 @@ public class SlotType {
 
 	public SlotType(String group, String name, int order, int amount, Identifier icon, Set<Identifier> quickMovePredicates,
 					Set<Identifier> validatorPredicates, Set<Identifier> tooltipPredicates, DropRule dropRule) {
-		this(group, name, order, amount, icon, Items.IRON_CHESTPLATE.getDefaultStack(), quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);
+		this(group, name, order, amount, icon, Items.IRON_CHESTPLATE.getDefaultInstance(), quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);
 	}
 
 	public SlotType(String group, String name, int order, int amount, Identifier icon, ItemStack itemIcon, Set<Identifier> quickMovePredicates,
@@ -88,86 +86,86 @@ public class SlotType {
 		return dropRule;
 	}
 
-	public MutableText getTranslation() {
-		return Text.translatable("trinkets.slot." + this.group + "." + this.name);
+	public MutableComponent getTranslation() {
+		return Component.translatable("trinkets.slot." + this.group + "." + this.name);
 	}
 
-	public void write(NbtCompound data) {
-		NbtCompound tag = new NbtCompound();
+	public void write(CompoundTag data) {
+		CompoundTag tag = new CompoundTag();
 		tag.putString("Group", group);
 		tag.putString("Name", name);
 		tag.putInt("Order", order);
 		tag.putInt("Amount", amount);
 		tag.putString("Icon", icon.toString());
-		NbtList quickMovePredicateList = new NbtList();
+		ListTag quickMovePredicateList = new ListTag();
 
 		for (Identifier id : quickMovePredicates) {
-			quickMovePredicateList.add(NbtString.of(id.toString()));
+			quickMovePredicateList.add(StringTag.valueOf(id.toString()));
 		}
 		tag.put("QuickMovePredicates", quickMovePredicateList);
 
-		NbtList validatorPredicateList = new NbtList();
+		ListTag validatorPredicateList = new ListTag();
 
 		for (Identifier id : validatorPredicates) {
-			validatorPredicateList.add(NbtString.of(id.toString()));
+			validatorPredicateList.add(StringTag.valueOf(id.toString()));
 		}
 		tag.put("ValidatorPredicates", validatorPredicateList);
 
-		NbtList tooltipPredicateList = new NbtList();
+		ListTag tooltipPredicateList = new ListTag();
 
 		for (Identifier id : tooltipPredicates) {
-			tooltipPredicateList.add(NbtString.of(id.toString()));
+			tooltipPredicateList.add(StringTag.valueOf(id.toString()));
 		}
 		tag.put("TooltipPredicates", tooltipPredicateList);
 		tag.putString("DropRule", dropRule.toString());
 
 		if (!this.itemIcon.isEmpty()) {
-			tag.put("PolyPort$icon", ItemStack.OPTIONAL_CODEC, DynamicRegistryManager.of(Registries.REGISTRIES).getOps(NbtOps.INSTANCE), this.itemIcon);
+			tag.store("PolyPort$icon", ItemStack.OPTIONAL_CODEC, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).createSerializationContext(NbtOps.INSTANCE), this.itemIcon);
 		}
 		data.put("SlotData", tag);
 	}
 
-	public static SlotType read(NbtCompound data) {
-		NbtCompound slotData = data.getCompoundOrEmpty("SlotData");
-		String group = slotData.getString("Group", "");
-		String name = slotData.getString("Name", "");
-		int order = slotData.getInt("Order", 0);
-		int amount = slotData.getInt("Amount", 0);
-		Identifier icon = Identifier.of(slotData.getString("Icon", ""));
-		NbtList quickMoveList = slotData.getListOrEmpty("QuickMovePredicates");
+	public static SlotType read(CompoundTag data) {
+		CompoundTag slotData = data.getCompoundOrEmpty("SlotData");
+		String group = slotData.getStringOr("Group", "");
+		String name = slotData.getStringOr("Name", "");
+		int order = slotData.getIntOr("Order", 0);
+		int amount = slotData.getIntOr("Amount", 0);
+		Identifier icon = Identifier.parse(slotData.getStringOr("Icon", ""));
+		ListTag quickMoveList = slotData.getListOrEmpty("QuickMovePredicates");
 		Set<Identifier> quickMovePredicates = new HashSet<>();
 
-		for (NbtElement tag : quickMoveList) {
-			if (tag instanceof NbtString string) {
-				quickMovePredicates.add(Identifier.of(string.value()));
+		for (Tag tag : quickMoveList) {
+			if (tag instanceof StringTag string) {
+				quickMovePredicates.add(Identifier.parse(string.value()));
 			}
 		}
-		NbtList validatorList = slotData.getListOrEmpty("ValidatorPredicates");
+		ListTag validatorList = slotData.getListOrEmpty("ValidatorPredicates");
 		Set<Identifier> validatorPredicates = new HashSet<>();
 
-		for (NbtElement tag : validatorList) {
-			if (tag instanceof NbtString string) {
-				validatorPredicates.add(Identifier.of(string.value()));
+		for (Tag tag : validatorList) {
+			if (tag instanceof StringTag string) {
+				validatorPredicates.add(Identifier.parse(string.value()));
 			}
 		}
-		NbtList tooltipList = slotData.getListOrEmpty("TooltipPredicates");
+		ListTag tooltipList = slotData.getListOrEmpty("TooltipPredicates");
 		Set<Identifier> tooltipPredicates = new HashSet<>();
 
-		for (NbtElement tag : tooltipList) {
-			if (tag instanceof NbtString string) {
-				tooltipPredicates.add(Identifier.of(string.value()));
+		for (Tag tag : tooltipList) {
+			if (tag instanceof StringTag string) {
+				tooltipPredicates.add(Identifier.parse(string.value()));
 			}
 		}
-		String dropRuleName = slotData.getString("DropRule", "");
+		String dropRuleName = slotData.getStringOr("DropRule", "");
 		DropRule dropRule = DropRule.DEFAULT;
 
 		if (TrinketEnums.DropRule.has(dropRuleName)) {
 			dropRule = TrinketEnums.DropRule.valueOf(dropRuleName);
 		}
 
-		var itemIcon = slotData.get("PolyPort$icon", ItemStack.OPTIONAL_CODEC, DynamicRegistryManager.of(Registries.REGISTRIES).getOps(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
+		var itemIcon = slotData.read("PolyPort$icon", ItemStack.OPTIONAL_CODEC, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).createSerializationContext(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
 		if (itemIcon == ItemStack.EMPTY) {
-			itemIcon = Items.IRON_CHESTPLATE.getDefaultStack();
+			itemIcon = Items.IRON_CHESTPLATE.getDefaultInstance();
 		}
 
 		return new SlotType(group, name, order, amount, icon, itemIcon, quickMovePredicates, validatorPredicates, tooltipPredicates, dropRule);

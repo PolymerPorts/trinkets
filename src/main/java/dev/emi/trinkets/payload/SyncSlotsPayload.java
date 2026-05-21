@@ -2,30 +2,29 @@ package dev.emi.trinkets.payload;
 
 import dev.emi.trinkets.TrinketsNetwork;
 import dev.emi.trinkets.api.SlotGroup;
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.registry.RegistryKeys;
-
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.EntityType;
 
-public record SyncSlotsPayload(Map<EntityType<?>, Map<String, SlotGroup>> map) implements CustomPayload {
-	public static final PacketCodec<RegistryByteBuf, SyncSlotsPayload> CODEC = PacketCodecs.map(
+public record SyncSlotsPayload(Map<EntityType<?>, Map<String, SlotGroup>> map) implements CustomPacketPayload {
+	public static final StreamCodec<RegistryFriendlyByteBuf, SyncSlotsPayload> CODEC = ByteBufCodecs.map(
 			(x) -> (Map<EntityType<?>, Map<String, SlotGroup>>) new HashMap<EntityType<?>, Map<String, SlotGroup>>(x),
-			PacketCodecs.registryValue(RegistryKeys.ENTITY_TYPE),
-			PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.NBT_COMPOUND.xmap(SlotGroup::read, (x) -> {
-				NbtCompound nbt = new NbtCompound();
+			ByteBufCodecs.registry(Registries.ENTITY_TYPE),
+			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.COMPOUND_TAG.map(SlotGroup::read, (x) -> {
+				CompoundTag nbt = new CompoundTag();
 				x.write(nbt);
 				return nbt;
 			}))
-			).xmap(SyncSlotsPayload::new, SyncSlotsPayload::map);
+			).map(SyncSlotsPayload::new, SyncSlotsPayload::map);
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
+	public Type<? extends CustomPacketPayload> type() {
 		return TrinketsNetwork.SYNC_SLOTS;
 	}
 }

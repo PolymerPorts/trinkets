@@ -6,14 +6,14 @@ import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
 import dev.emi.trinkets.mixin.accessor.RecipeBookScreenAccessor;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 /**
  * A gui slot for a trinket slot, used in the survival inventory, but suited for any case
@@ -36,27 +36,27 @@ public class SurvivalTrinketSlot extends Slot implements TrinketSlot {
 	}
 
 	@Override
-	public boolean canInsert(ItemStack stack) {
+	public boolean mayPlace(ItemStack stack) {
 		return TrinketSlot.canInsert(stack, new SlotReference(trinketInventory, slotOffset), trinketInventory.getComponent().getEntity());
 	}
 
 	@Override
-	public boolean canTakeItems(PlayerEntity player) {
-		ItemStack stack = this.getStack();
+	public boolean mayPickup(Player player) {
+		ItemStack stack = this.getItem();
 		return TrinketsApi.getTrinket(stack.getItem())
 			.canUnequip(stack, new SlotReference(trinketInventory, slotOffset), player);
 	}
 
 	@Override
-	public boolean isEnabled() {
+	public boolean isActive() {
 		if (alwaysVisible) {
 			if (x < 0) {
-				World world = trinketInventory.getComponent().getEntity().getEntityWorld();
-				if (world.isClient()) {
-					MinecraftClient client = MinecraftClient.getInstance();
-					Screen s = client.currentScreen;
+				Level world = trinketInventory.getComponent().getEntity().level();
+				if (world.isClientSide()) {
+					Minecraft client = Minecraft.getInstance();
+					Screen s = client.screen;
 					if (s instanceof InventoryScreen screen) {
-						if (((RecipeBookScreenAccessor) screen).getRecipeBook().isOpen()) {
+						if (((RecipeBookScreenAccessor) screen).getRecipeBookComponent().isVisible()) {
 							return false;
 						}
 					}

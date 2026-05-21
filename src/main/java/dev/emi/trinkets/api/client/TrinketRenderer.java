@@ -1,24 +1,17 @@
 package dev.emi.trinkets.api.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import dev.emi.trinkets.api.SlotReference;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.LivingEntityRenderer;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.render.entity.model.ModelWithHead;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
-import net.minecraft.client.render.entity.state.BipedEntityRenderState;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HeadedModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.item.ItemStack;
 
 @Deprecated
 public interface TrinketRenderer {
@@ -31,47 +24,47 @@ public interface TrinketRenderer {
 	 * @param contextModel The model this Trinket is being rendered on
 	 */
 	void render(ItemStack stack, SlotReference slotReference, EntityModel<? extends LivingEntityRenderState> contextModel,
-				MatrixStack matrices, OrderedRenderCommandQueue vertexConsumers, int light, LivingEntityRenderState state,
+				PoseStack matrices, SubmitNodeCollector vertexConsumers, int light, LivingEntityRenderState state,
 				float limbAngle, float limbDistance);
 
 	/**
 	 * Rotates the rendering for the models based on the entity's poses and movements. This will do
 	 * nothing if the entity render object does not implement {@link LivingEntityRenderer} or if the
-	 * model does not implement {@link BipedEntityModel}).
+	 * model does not implement {@link HumanoidModel}).
 	 *
 	 * @param entityModel The model of wearer of the trinket
 	 * @param model The model to align to the body movement
 	 */
 	@SuppressWarnings("unchecked")
-	static void followBodyRotations(final EntityModel<? extends LivingEntityRenderState> entityModel, final BipedEntityModel<?> model) {
-		if (entityModel instanceof BipedEntityModel<?> bipedModel) {
+	static void followBodyRotations(final EntityModel<? extends LivingEntityRenderState> entityModel, final HumanoidModel<?> model) {
+		if (entityModel instanceof HumanoidModel<?> bipedModel) {
 			//noinspection rawtypes
-			model.head.setTransform(bipedModel.head.getTransform());
-			model.body.setTransform(bipedModel.body.getTransform());
-			model.leftArm.setTransform(bipedModel.leftArm.getTransform());
-			model.rightArm.setTransform(bipedModel.rightArm.getTransform());
-			model.leftLeg.setTransform(bipedModel.leftLeg.getTransform());
-			model.rightLeg.setTransform(bipedModel.rightLeg.getTransform());
+			model.head.loadPose(bipedModel.head.storePose());
+			model.body.loadPose(bipedModel.body.storePose());
+			model.leftArm.loadPose(bipedModel.leftArm.storePose());
+			model.rightArm.loadPose(bipedModel.rightArm.storePose());
+			model.leftLeg.loadPose(bipedModel.leftLeg.storePose());
+			model.rightLeg.loadPose(bipedModel.rightLeg.storePose());
 		}
 	}
 
 	/**
 	 * Translates the rendering context to the center of the player's face
 	 */
-	static void translateToFace(MatrixStack matrices, ModelWithHead model,
-			BipedEntityRenderState state, float headYaw, float headPitch) {
+	static void translateToFace(PoseStack matrices, HeadedModel model,
+			HumanoidRenderState state, float headYaw, float headPitch) {
 
-		if (state.isSwimming || state.isGliding) {
-			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(model.getHead().roll));
-			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(headYaw));
-			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-45.0F));
+		if (state.isVisuallySwimming || state.isFallFlying) {
+			matrices.mulPose(Axis.ZP.rotationDegrees(model.getHead().zRot));
+			matrices.mulPose(Axis.YP.rotationDegrees(headYaw));
+			matrices.mulPose(Axis.XP.rotationDegrees(-45.0F));
 		} else {
 
-			if (state.isInSneakingPose || state.isInPose(EntityPose.SITTING)) {
+			if (state.isCrouching || state.hasPose(Pose.SITTING)) {
 				matrices.translate(0.0F, 0.25F, 0.0F);
 			}
-			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(headYaw));
-			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(headPitch));
+			matrices.mulPose(Axis.YP.rotationDegrees(headYaw));
+			matrices.mulPose(Axis.XP.rotationDegrees(headPitch));
 		}
 		matrices.translate(0.0F, -0.25F, -0.3F);
 	}
@@ -79,79 +72,79 @@ public interface TrinketRenderer {
 	/**
 	 * Translates the rendering context to the center of the player's chest/torso segment
 	 */
-	static void translateToChest(MatrixStack matrices, BipedEntityModel<?> model,
-			BipedEntityRenderState state) {
+	static void translateToChest(PoseStack matrices, HumanoidModel<?> model,
+			HumanoidRenderState state) {
 
-		if (state.isInSneakingPose && !state.isInPose(EntityPose.SITTING) && !state.isSwimming) {
+		if (state.isCrouching && !state.hasPose(Pose.SITTING) && !state.isVisuallySwimming) {
 			matrices.translate(0.0F, 0.2F, 0.0F);
-			matrices.multiply(RotationAxis.POSITIVE_X.rotation(model.body.pitch));
+			matrices.mulPose(Axis.XP.rotation(model.body.xRot));
 		}
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.body.yaw));
+		matrices.mulPose(Axis.YP.rotation(model.body.yRot));
 		matrices.translate(0.0F, 0.4F, -0.16F);
 	}
 
 	/**
 	 * Translates the rendering context to the center of the bottom of the player's right arm
 	 */
-	static void translateToRightArm(MatrixStack matrices, BipedEntityModel<?> model,
-			BipedEntityRenderState state) {
+	static void translateToRightArm(PoseStack matrices, HumanoidModel<?> model,
+			HumanoidRenderState state) {
 
-		if (state.isInSneakingPose && !state.isInPose(EntityPose.SITTING) && !state.isSwimming) {
+		if (state.isCrouching && !state.hasPose(Pose.SITTING) && !state.isVisuallySwimming) {
 			matrices.translate(0.0F, 0.2F, 0.0F);
 		}
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.body.yaw));
+		matrices.mulPose(Axis.YP.rotation(model.body.yRot));
 		matrices.translate(-0.3125F, 0.15625F, 0.0F);
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotation(model.rightArm.roll));
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.rightArm.yaw));
-		matrices.multiply(RotationAxis.POSITIVE_X.rotation(model.rightArm.pitch));
+		matrices.mulPose(Axis.ZP.rotation(model.rightArm.zRot));
+		matrices.mulPose(Axis.YP.rotation(model.rightArm.yRot));
+		matrices.mulPose(Axis.XP.rotation(model.rightArm.xRot));
 		matrices.translate(-0.0625F, 0.625F, 0.0F);
 	}
 
 	/**
 	 * Translates the rendering context to the center of the bottom of the player's left arm
 	 */
-	static void translateToLeftArm(MatrixStack matrices, BipedEntityModel<?> model,
-			BipedEntityRenderState state) {
+	static void translateToLeftArm(PoseStack matrices, HumanoidModel<?> model,
+			HumanoidRenderState state) {
 
-		if (state.isInSneakingPose && !state.isInPose(EntityPose.SITTING) && !state.isSwimming) {
+		if (state.isCrouching && !state.hasPose(Pose.SITTING) && !state.isVisuallySwimming) {
 			matrices.translate(0.0F, 0.2F, 0.0F);
 		}
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.body.yaw));
+		matrices.mulPose(Axis.YP.rotation(model.body.yRot));
 		matrices.translate(0.3125F, 0.15625F, 0.0F);
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotation(model.leftArm.roll));
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.leftArm.yaw));
-		matrices.multiply(RotationAxis.POSITIVE_X.rotation(model.leftArm.pitch));
+		matrices.mulPose(Axis.ZP.rotation(model.leftArm.zRot));
+		matrices.mulPose(Axis.YP.rotation(model.leftArm.yRot));
+		matrices.mulPose(Axis.XP.rotation(model.leftArm.xRot));
 		matrices.translate(0.0625F, 0.625F, 0.0F);
 	}
 
 	/**
 	 * Translates the rendering context to the center of the bottom of the player's right leg
 	 */
-	static void translateToRightLeg(MatrixStack matrices, BipedEntityModel<?> model,
-			BipedEntityRenderState state) {
+	static void translateToRightLeg(PoseStack matrices, HumanoidModel<?> model,
+			HumanoidRenderState state) {
 
-		if (state.isInSneakingPose && !state.isInPose(EntityPose.SITTING) && !state.isSwimming) {
+		if (state.isCrouching && !state.hasPose(Pose.SITTING) && !state.isVisuallySwimming) {
 			matrices.translate(0.0F, 0.0F, 0.25F);
 		}
 		matrices.translate(-0.125F, 0.75F, 0.0F);
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotation(model.rightLeg.roll));
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.rightLeg.yaw));
-		matrices.multiply(RotationAxis.POSITIVE_X.rotation(model.rightLeg.pitch));
+		matrices.mulPose(Axis.ZP.rotation(model.rightLeg.zRot));
+		matrices.mulPose(Axis.YP.rotation(model.rightLeg.yRot));
+		matrices.mulPose(Axis.XP.rotation(model.rightLeg.xRot));
 		matrices.translate(0.0F, 0.75F, 0.0F);
 	}
 
 	/**
 	 * Translates the rendering context to the center of the bottom of the player's left leg
 	 */
-	static void translateToLeftLeg(MatrixStack matrices, BipedEntityModel<?> model,
-			BipedEntityRenderState state) {
-		if (state.isInSneakingPose && !state.isInPose(EntityPose.SITTING) && !state.isSwimming) {
+	static void translateToLeftLeg(PoseStack matrices, HumanoidModel<?> model,
+			HumanoidRenderState state) {
+		if (state.isCrouching && !state.hasPose(Pose.SITTING) && !state.isVisuallySwimming) {
 			matrices.translate(0.0F, 0.0F, 0.25F);
 		}
 		matrices.translate(0.125F, 0.75F, 0.0F);
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotation(model.leftLeg.roll));
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotation(model.leftLeg.yaw));
-		matrices.multiply(RotationAxis.POSITIVE_X.rotation(model.leftLeg.pitch));
+		matrices.mulPose(Axis.ZP.rotation(model.leftLeg.zRot));
+		matrices.mulPose(Axis.YP.rotation(model.leftLeg.yRot));
+		matrices.mulPose(Axis.XP.rotation(model.leftLeg.xRot));
 		matrices.translate(0.0F, 0.75F, 0.0F);
 	}
 }

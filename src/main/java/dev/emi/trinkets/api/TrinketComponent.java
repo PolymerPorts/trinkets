@@ -3,17 +3,16 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.Multimap;
 
 import org.ladysnake.cca.api.v3.component.ComponentV3;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public interface TrinketComponent extends ComponentV3 {
 
@@ -33,15 +32,15 @@ public interface TrinketComponent extends ComponentV3 {
 
 	void update();
 
-	void addTemporaryModifiers(Multimap<String, EntityAttributeModifier> modifiers);
+	void addTemporaryModifiers(Multimap<String, AttributeModifier> modifiers);
 
-	void addPersistentModifiers(Multimap<String, EntityAttributeModifier> modifiers);
+	void addPersistentModifiers(Multimap<String, AttributeModifier> modifiers);
 
-	void removeModifiers(Multimap<String, EntityAttributeModifier> modifiers);
+	void removeModifiers(Multimap<String, AttributeModifier> modifiers);
 
 	void clearModifiers();
 
-	Multimap<String, EntityAttributeModifier> getModifiers();
+	Multimap<String, AttributeModifier> getModifiers();
 
 	/**
 	 * @return Whether the predicate matches any slots available to the entity
@@ -58,19 +57,19 @@ public interface TrinketComponent extends ComponentV3 {
 	/**
 	 * @return All slots that match the provided predicate
 	 */
-	List<Pair<SlotReference, ItemStack>> getEquipped(Predicate<ItemStack> predicate);
+	List<Tuple<SlotReference, ItemStack>> getEquipped(Predicate<ItemStack> predicate);
 
 	/**
 	 * @return All slots that contain the provided item
 	 */
-	default List<Pair<SlotReference, ItemStack>> getEquipped(Item item) {
+	default List<Tuple<SlotReference, ItemStack>> getEquipped(Item item) {
 		return getEquipped(stack -> stack.getItem() == item);
 	}
 
 	/**
 	 * @return All non-empty slots
 	 */
-	default List<Pair<SlotReference, ItemStack>> getAllEquipped() {
+	default List<Tuple<SlotReference, ItemStack>> getAllEquipped() {
 		return getEquipped(stack -> !stack.isEmpty());
 	}
 

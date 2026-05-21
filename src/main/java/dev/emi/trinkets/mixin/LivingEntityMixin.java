@@ -4,7 +4,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
+import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gamerules.GameRules;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -19,12 +36,6 @@ import dev.emi.trinkets.api.TrinketSaveData;
 import dev.emi.trinkets.api.event.TrinketEquipCallback;
 import dev.emi.trinkets.api.event.TrinketUnequipCallback;
 import dev.emi.trinkets.payload.SyncInventoryPayload;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -36,19 +47,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import dev.emi.trinkets.api.SlotAttributes.SlotEntityAttribute;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.api.event.TrinketDropCallback;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.AttributeContainer;
-import net.minecraft.entity.attribute.EntityAttribute;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.rule.GameRules;
-import net.minecraft.world.World;
 
 /**
  * Trinket dropping on death, trinket EAMs, and trinket equip/unequip calls
@@ -61,7 +59,7 @@ public abstract class LivingEntityMixin extends Entity {
 	private final Map<String, ItemStack> lastEquippedTrinkets = new HashMap<>();
 
 	@Shadow
-	public abstract AttributeContainer getAttributes();
+	public abstract AttributeMap getAttributes();
 
 	private LivingEntityMixin() {
 		super(null, null);
@@ -71,8 +69,8 @@ public abstract class LivingEntityMixin extends Entity {
 	private void canFreeze(CallbackInfoReturnable<Boolean> cir) {
         Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent((LivingEntity) (Object) this);
 		if (component.isPresent()) {
-			for (Pair<SlotReference, ItemStack> equipped : component.get().getAllEquipped()) {
-				if (equipped.getRight().isIn(ItemTags.FREEZE_IMMUNE_WEARABLES)) {
+			for (Tuple<SlotReference, ItemStack> equipped : component.get().getAllEquipped()) {
+				if (equipped.getB().is(ItemTags.FREEZE_IMMUNE_WEARABLES)) {
 					cir.setReturnValue(false);
 					break;
 				}
@@ -80,11 +78,11 @@ public abstract class LivingEntityMixin extends Entity {
 		}
 	}
 
-	@Inject(at = @At("TAIL"), method = "dropInventory")
-	private void dropInventory(ServerWorld world, CallbackInfo info) {
+	@Inject(at = @At("TAIL"), method = "dropEquipment")
+	private void dropInventory(ServerLevel world, CallbackInfo info) {
 		LivingEntity entity = (LivingEntity) (Object) this;
 
-		boolean keepInv = world.getGameRules().getValue(GameRules.KEEP_INVENTORY);
+		boolean keepInv = world.getGameRules().get(GameRules.KEEP_INVENTORY);
 		TrinketsApi.getTrinketComponent(entity).ifPresent(trinkets -> trinkets.forEach((ref, stack) -> {
 			if (stack.isEmpty()) {
 				return;
@@ -104,7 +102,7 @@ public abstract class LivingEntityMixin extends Entity {
 				if (keepInv && entity.getType() == EntityType.PLAYER) {
 					dropRule = DropRule.KEEP;
 				} else {
-					if (EnchantmentHelper.hasAnyEnchantmentsWith(stack, EnchantmentEffectComponentTypes.PREVENT_EQUIPMENT_DROP)) {
+					if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
 						dropRule = DropRule.DESTROY;
 					} else {
 						dropRule = DropRule.DROP;
@@ -117,7 +115,7 @@ public abstract class LivingEntityMixin extends Entity {
 					dropFromEntity(stack);
 					// Fallthrough
 				case DESTROY:
-					inventory.setStack(ref.index(), ItemStack.EMPTY);
+					inventory.setItem(ref.index(), ItemStack.EMPTY);
 					break;
 				default:
 					break;
@@ -128,10 +126,10 @@ public abstract class LivingEntityMixin extends Entity {
 	@Unique
 	private void dropFromEntity(ItemStack stack) {
 		// Mimic player drop behavior for only players
-		if (((Entity) this) instanceof PlayerEntity player) {
-			ItemEntity entity = player.dropItem(stack, true, false);
-		} else if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
-			ItemEntity entity = dropStack(serverWorld, stack);
+		if (((Entity) this) instanceof Player player) {
+			ItemEntity entity = player.drop(stack, true, false);
+		} else if (this.level() instanceof ServerLevel serverWorld) {
+			ItemEntity entity = spawnAtLocation(serverWorld, stack);
 		}
 	}
 
@@ -149,37 +147,37 @@ public abstract class LivingEntityMixin extends Entity {
 				SlotType slotType = inventory.getSlotType();
 				int index = ref.index();
 				ItemStack oldStack = getOldStack(slotType, index);
-				ItemStack newStack = inventory.getStack(index);
+				ItemStack newStack = inventory.getItem(index);
 				ItemStack newStackCopy = newStack.copy();
 				String newRef = slotType.getGroup() + "/" + slotType.getName() + "/" + index;
 
-				if (!ItemStack.areEqual(newStack, oldStack)) {
+				if (!ItemStack.matches(newStack, oldStack)) {
 
 					TrinketsApi.getTrinket(oldStack.getItem()).onUnequip(oldStack, ref, entity);
 					TrinketUnequipCallback.EVENT.invoker().onUnequip(oldStack, ref, entity);
 					TrinketsApi.getTrinket(newStack.getItem()).onEquip(newStack, ref, entity);
 					TrinketEquipCallback.EVENT.invoker().onEquip(newStack, ref, entity);
 
-					World world = this.getEntityWorld();
-					if (!world.isClient()) {
+					Level world = this.level();
+					if (!world.isClientSide()) {
 						contentUpdates.put(newRef, newStackCopy);
 
 						if (!oldStack.isEmpty()) {
-							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = TrinketModifiers.get(oldStack, ref, entity);
-							Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
-							Set<RegistryEntry<EntityAttribute>> toRemove = Sets.newHashSet();
-							for (RegistryEntry<EntityAttribute> attr : map.keySet()) {
-								if (attr.hasKeyAndValue() && attr.value() instanceof SlotEntityAttribute slotAttr) {
+							Multimap<Holder<Attribute>, AttributeModifier> map = TrinketModifiers.get(oldStack, ref, entity);
+							Multimap<String, AttributeModifier> slotMap = HashMultimap.create();
+							Set<Holder<Attribute>> toRemove = Sets.newHashSet();
+							for (Holder<Attribute> attr : map.keySet()) {
+								if (attr.isBound() && attr.value() instanceof SlotEntityAttribute slotAttr) {
 									slotMap.putAll(slotAttr.slot, map.get(attr));
 									toRemove.add(attr);
 								}
 							}
-							for (RegistryEntry<EntityAttribute> attr : toRemove) {
+							for (Holder<Attribute> attr : toRemove) {
 								map.removeAll(attr);
 							}
 							//this.getAttributes().removeModifiers(map);
 							map.asMap().forEach((attribute, modifiers) -> {
-								EntityAttributeInstance entityAttributeInstance = this.getAttributes().getCustomInstance(attribute);
+								AttributeInstance entityAttributeInstance = this.getAttributes().getInstance(attribute);
 								if (entityAttributeInstance != null) {
 									modifiers.forEach(modifier -> entityAttributeInstance.removeModifier(modifier.id()));
 								}
@@ -189,24 +187,24 @@ public abstract class LivingEntityMixin extends Entity {
 						}
 
 						if (!newStack.isEmpty()) {
-							Multimap<RegistryEntry<EntityAttribute>, EntityAttributeModifier> map = TrinketModifiers.get(newStack, ref, entity);
-							Multimap<String, EntityAttributeModifier> slotMap = HashMultimap.create();
-							Set<RegistryEntry<EntityAttribute>> toRemove = Sets.newHashSet();
-							for (RegistryEntry<EntityAttribute> attr : map.keySet()) {
-								if (attr.hasKeyAndValue() && attr.value() instanceof SlotEntityAttribute slotAttr) {
+							Multimap<Holder<Attribute>, AttributeModifier> map = TrinketModifiers.get(newStack, ref, entity);
+							Multimap<String, AttributeModifier> slotMap = HashMultimap.create();
+							Set<Holder<Attribute>> toRemove = Sets.newHashSet();
+							for (Holder<Attribute> attr : map.keySet()) {
+								if (attr.isBound() && attr.value() instanceof SlotEntityAttribute slotAttr) {
 									slotMap.putAll(slotAttr.slot, map.get(attr));
 									toRemove.add(attr);
 								}
 							}
-							for (RegistryEntry<EntityAttribute> attr : toRemove) {
+							for (Holder<Attribute> attr : toRemove) {
 								map.removeAll(attr);
 							}
 							//this.getAttributes().addTemporaryModifiers(map);
 							map.forEach((attribute, attributeModifier) -> {
-								EntityAttributeInstance entityAttributeInstance = this.getAttributes().getCustomInstance(attribute);
+								AttributeInstance entityAttributeInstance = this.getAttributes().getInstance(attribute);
 								if (entityAttributeInstance != null) {
 									entityAttributeInstance.removeModifier(attributeModifier.id());
-									entityAttributeInstance.addTemporaryModifier(attributeModifier);
+									entityAttributeInstance.addTransientModifier(attributeModifier);
 								}
 
 							});
@@ -215,7 +213,7 @@ public abstract class LivingEntityMixin extends Entity {
 					}
 				}
 				TrinketsApi.getTrinket(newStack.getItem()).tick(newStack, ref, entity);
-				ItemStack tickedStack = inventory.getStack(index);
+				ItemStack tickedStack = inventory.getItem(index);
 				// Avoid calling equip/unequip on stacks that mutate themselves
 				if (tickedStack.getItem() == newStackCopy.getItem()) {
 					newlyEquippedTrinkets.put(newRef, tickedStack.copy());

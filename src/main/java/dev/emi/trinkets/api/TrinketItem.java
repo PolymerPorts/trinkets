@@ -1,41 +1,40 @@
 package dev.emi.trinkets.api;
 
 import dev.emi.trinkets.TrinketSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import net.minecraft.core.Holder;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 
 /**
  * A convenient base class for trinket items that automatically registers itself and
  */
 public class TrinketItem extends Item implements Trinket {
 
-	public TrinketItem(Item.Settings settings) {
+	public TrinketItem(Item.Properties settings) {
 		super(settings);
 		TrinketsApi.registerTrinket(this, this);
 	}
 
 	@Override
-	public ActionResult use(World world, PlayerEntity user, Hand hand) {
-		ItemStack stack = user.getStackInHand(hand);
+	public InteractionResult use(Level world, Player user, InteractionHand hand) {
+		ItemStack stack = user.getItemInHand(hand);
 		if (equipItem(user, stack)) {
-			return ActionResult.SUCCESS;
+			return InteractionResult.SUCCESS;
 		}
 		return super.use(world, user, hand);
 	}
 
-	public static boolean equipItem(PlayerEntity user, ItemStack stack) {
+	public static boolean equipItem(Player user, ItemStack stack) {
 		return equipItem((LivingEntity) user, stack);
 	}
 
@@ -45,16 +44,16 @@ public class TrinketItem extends Item implements Trinket {
 			TrinketComponent comp = optional.get();
 			for (Map<String, TrinketInventory> group : comp.getInventory().values()) {
 				for (TrinketInventory inv : group.values()) {
-					for (int i = 0; i < inv.size(); i++) {
-						if (inv.getStack(i).isEmpty()) {
+					for (int i = 0; i < inv.getContainerSize(); i++) {
+						if (inv.getItem(i).isEmpty()) {
 							SlotReference ref = new SlotReference(inv, i);
 							if (TrinketSlot.canInsert(stack, ref, user)) {
 								ItemStack newStack = stack.copy();
-								inv.setStack(i, newStack);
+								inv.setItem(i, newStack);
 								Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
-								RegistryEntry<SoundEvent> soundEvent = trinket.getEquipSound(stack, ref, user);
+								Holder<SoundEvent> soundEvent = trinket.getEquipSound(stack, ref, user);
 								if (!stack.isEmpty() && soundEvent != null) {
-								   user.emitGameEvent(GameEvent.EQUIP);
+								   user.gameEvent(GameEvent.EQUIP);
 								   user.playSound(soundEvent.value(), 1.0F, 1.0F);
 								}
 								stack.setCount(0);

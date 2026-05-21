@@ -27,46 +27,46 @@ import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
-import net.minecraft.entity.EntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.SinglePreparationResourceReloader;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
 
-public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<String, Map<String, Set<String>>>> implements IdentifiableResourceReloadListener {
+public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String, Map<String, Set<String>>>> implements IdentifiableResourceReloadListener {
 
 	public static final EntitySlotLoader CLIENT = new EntitySlotLoader();
 	public static final EntitySlotLoader SERVER = new EntitySlotLoader();
 
 	private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-	private static final Identifier ID = Identifier.of(TrinketsMain.MOD_ID, "entities");
+	private static final Identifier ID = Identifier.fromNamespaceAndPath(TrinketsMain.MOD_ID, "entities");
 
 	private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
 
 	@Override
-	protected Map<String, Map<String, Set<String>>> prepare(ResourceManager resourceManager, Profiler profiler) {
+	protected Map<String, Map<String, Set<String>>> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
 		Map<String, Map<String, Set<String>>> map = new HashMap<>();
 		String dataType = "entities";
 
-		for (Map.Entry<Identifier, List<Resource>> entry : resourceManager.findAllResources(dataType, id -> id.getPath().endsWith(".json")).entrySet()) {
+		for (Map.Entry<Identifier, List<Resource>> entry : resourceManager.listResourceStacks(dataType, id -> id.getPath().endsWith(".json")).entrySet()) {
 			Identifier identifier = entry.getKey();
 
 			if (identifier.getNamespace().equals(TrinketsMain.MOD_ID)) {
 
 				try {
 					for (Resource resource : entry.getValue()) {
-						InputStreamReader reader = new InputStreamReader(resource.getInputStream());
-						JsonObject jsonObject = JsonHelper.deserialize(GSON, reader, JsonObject.class);
+						InputStreamReader reader = new InputStreamReader(resource.open());
+						JsonObject jsonObject = GsonHelper.fromJson(GSON, reader, JsonObject.class);
 
 						if (jsonObject != null) {
 
 							try {
-								boolean replace = JsonHelper.getBoolean(jsonObject, "replace", false);
-								JsonArray assignedSlots = JsonHelper.getArray(jsonObject, "slots", new JsonArray());
+								boolean replace = GsonHelper.getAsBoolean(jsonObject, "replace", false);
+								JsonArray assignedSlots = GsonHelper.getAsJsonArray(jsonObject, "slots", new JsonArray());
 								Map<String, Set<String>> groups = new HashMap<>();
 
 								if (assignedSlots != null) {
@@ -85,7 +85,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 										groups.computeIfAbsent(group, (k) -> new HashSet<>()).add(name);
 									}
 								}
-								JsonArray entities = JsonHelper.getArray(jsonObject, "entities", new JsonArray());
+								JsonArray entities = GsonHelper.getAsJsonArray(jsonObject, "entities", new JsonArray());
 
 								if (!groups.isEmpty() && entities != null) {
 
@@ -94,9 +94,9 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 										String id;
 
 										if (name.startsWith("#")) {
-											id = "#" + Identifier.of(name.substring(1));
+											id = "#" + Identifier.parse(name.substring(1));
 										} else {
-											id = Identifier.of(name).toString();
+											id = Identifier.parse(name).toString();
 										}
 										Map<String, Set<String>> slots = map.computeIfAbsent(id, (k) -> new HashMap<>());
 
@@ -124,7 +124,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 	}
 
 	@Override
-	protected void apply(Map<String, Map<String, Set<String>>> loader, ResourceManager manager, Profiler profiler) {
+	protected void apply(Map<String, Map<String, Set<String>>> loader, ResourceManager manager, ProfilerFiller profiler) {
 		Map<String, GroupData> slots = SlotLoader.INSTANCE.getSlots();
 		Map<EntityType<?>, Map<String, SlotGroup.Builder>> groupBuilders = new HashMap<>();
 
@@ -145,7 +145,7 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 
 					types.addAll(entityTypes);*/
 				} else {
-					types.add(Registries.ENTITY_TYPE.getOptionalValue(Identifier.of(entityName))
+					types.add(BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.parse(entityName))
 							.orElseThrow(() -> new IllegalArgumentException("Unknown entity '" + entityName + "'")));
 				}
 			} catch (IllegalArgumentException e) {
@@ -195,10 +195,10 @@ public class EntitySlotLoader extends SinglePreparationResourceReloader<Map<Stri
 		this.slots.putAll(slots);
 	}
 
-	public void sync(ServerPlayerEntity playerEntity) {
+	public void sync(ServerPlayer playerEntity) {
 	}
 
-	public void sync(List<? extends ServerPlayerEntity> players) {
+	public void sync(List<? extends ServerPlayer> players) {
 	}
 
 	@Override

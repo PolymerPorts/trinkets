@@ -24,23 +24,23 @@ import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import dev.emi.trinkets.data.SlotLoader.GroupData;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.command.argument.ItemStringReader;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.SinglePreparationResourceReloader;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
-public class SlotLoader extends SinglePreparationResourceReloader<Map<String, GroupData>> implements IdentifiableResourceReloadListener {
+public class SlotLoader extends SimplePreparableReloadListener<Map<String, GroupData>> implements IdentifiableResourceReloadListener {
 
 	public static final SlotLoader INSTANCE = new SlotLoader();
 
-	static final Identifier ID = Identifier.of(TrinketsMain.MOD_ID, "slots");
+	static final Identifier ID = Identifier.fromNamespaceAndPath(TrinketsMain.MOD_ID, "slots");
 
 	private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int FILE_SUFFIX_LENGTH = ".json".length();
@@ -48,18 +48,18 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 	private Map<String, GroupData> slots = new HashMap<>();
 
 	@Override
-	protected Map<String, GroupData> prepare(ResourceManager resourceManager, Profiler profiler) {
+	protected Map<String, GroupData> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
 		Map<String, GroupData> map = new HashMap<>();
 		String dataType = "slots";
-		for (Map.Entry<Identifier, List<Resource>> entry : resourceManager.findAllResources(dataType, id -> id.getPath().endsWith(".json")).entrySet()) {
+		for (Map.Entry<Identifier, List<Resource>> entry : resourceManager.listResourceStacks(dataType, id -> id.getPath().endsWith(".json")).entrySet()) {
 			Identifier identifier = entry.getKey();
 
 			if (identifier.getNamespace().equals(TrinketsMain.MOD_ID)) {
 
 				try {
 					for (Resource resource : entry.getValue()) {
-						InputStreamReader reader = new InputStreamReader(resource.getInputStream());
-						JsonObject jsonObject = JsonHelper.deserialize(GSON, reader, JsonObject.class);
+						InputStreamReader reader = new InputStreamReader(resource.open());
+						JsonObject jsonObject = GsonHelper.fromJson(GSON, reader, JsonObject.class);
 
 						if (jsonObject != null) {
 							String path = identifier.getPath();
@@ -91,7 +91,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 	}
 
 	@Override
-	protected void apply(Map<String, GroupData> loader, ResourceManager manager, Profiler profiler) {
+	protected void apply(Map<String, GroupData> loader, ResourceManager manager, ProfilerFiller profiler) {
 		this.slots = loader;
 	}
 
@@ -111,8 +111,8 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 		private final Map<String, SlotData> slots = new HashMap<>();
 
 		void read(JsonObject jsonObject) {
-			slotId = JsonHelper.getInt(jsonObject, "slot_id", slotId);
-			order = JsonHelper.getInt(jsonObject, "order", order);
+			slotId = GsonHelper.getAsInt(jsonObject, "slot_id", slotId);
+			order = GsonHelper.getAsInt(jsonObject, "order", order);
 		}
 
 		int getSlotId() {
@@ -129,9 +129,9 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 	}
 
 	static class SlotData {
-		private static final Set<Identifier> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "all"));
-		private static final Set<Identifier> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "tag"));
-		private static final Set<Identifier> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(Identifier.of("trinkets", "all"));
+		private static final Set<Identifier> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(Identifier.fromNamespaceAndPath("trinkets", "all"));
+		private static final Set<Identifier> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(Identifier.fromNamespaceAndPath("trinkets", "tag"));
+		private static final Set<Identifier> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(Identifier.fromNamespaceAndPath("trinkets", "all"));
 
 		private int order = 0;
 		private int amount = -1;
@@ -145,11 +145,11 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 
 
 		SlotType create(String group, String name) {
-			Identifier finalIcon = Identifier.of(icon);
+			Identifier finalIcon = Identifier.parse(icon);
 			//finalIcon = Identifier.of(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
-			Set<Identifier> finalValidatorPredicates = validatorPredicates.stream().map(Identifier::of).collect(Collectors.toSet());
-			Set<Identifier> finalQuickMovePredicates = quickMovePredicates.stream().map(Identifier::of).collect(Collectors.toSet());
-			Set<Identifier> finalTooltipPredicates = tooltipPredicates.stream().map(Identifier::of).collect(Collectors.toSet());
+			Set<Identifier> finalValidatorPredicates = validatorPredicates.stream().map(Identifier::parse).collect(Collectors.toSet());
+			Set<Identifier> finalQuickMovePredicates = quickMovePredicates.stream().map(Identifier::parse).collect(Collectors.toSet());
+			Set<Identifier> finalTooltipPredicates = tooltipPredicates.stream().map(Identifier::parse).collect(Collectors.toSet());
 			if (finalValidatorPredicates.isEmpty()) {
 				finalValidatorPredicates = DEFAULT_VALIDATOR_PREDICATES;
 			}
@@ -166,15 +166,15 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 			ItemStack iconItem;
 
 			try {
-				var reader = new ItemStringReader(DynamicRegistryManager.of(Registries.REGISTRIES));
-				var decode = reader.consume(new StringReader(this.iconItem));
+				var reader = new ItemParser(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+				var decode = reader.parse(new StringReader(this.iconItem));
 				var stack = new ItemStack(decode.item().value());
 
-				stack.applyChanges(decode.components());
+				stack.applyComponentsAndValidate(decode.components());
 
 				iconItem = stack;
 			} catch (Exception e) {
-				iconItem = Items.IRON_CHESTPLATE.getDefaultStack();
+				iconItem = Items.IRON_CHESTPLATE.getDefaultInstance();
 			}
 
 			return new SlotType(group, name, order, amount, finalIcon, iconItem, finalQuickMovePredicates, finalValidatorPredicates,
@@ -182,16 +182,16 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 		}
 
 		void read(JsonObject jsonObject) {
-			boolean replace = JsonHelper.getBoolean(jsonObject, "replace", false);
+			boolean replace = GsonHelper.getAsBoolean(jsonObject, "replace", false);
 
-			order = JsonHelper.getInt(jsonObject, "order", order);
+			order = GsonHelper.getAsInt(jsonObject, "order", order);
 
-			int jsonAmount = JsonHelper.getInt(jsonObject, "amount", amount);
+			int jsonAmount = GsonHelper.getAsInt(jsonObject, "amount", amount);
 			amount = replace ? jsonAmount : Math.max(jsonAmount, amount);
 
-			icon = JsonHelper.getString(jsonObject, "icon", icon);
+			icon = GsonHelper.getAsString(jsonObject, "icon", icon);
 
-			JsonArray jsonQuickMovePredicates = JsonHelper.getArray(jsonObject, "quick_move_predicates", new JsonArray());
+			JsonArray jsonQuickMovePredicates = GsonHelper.getAsJsonArray(jsonObject, "quick_move_predicates", new JsonArray());
 
 			if (jsonQuickMovePredicates != null) {
 
@@ -204,12 +204,12 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 				}
 			}
 
-			String jsonDropRule = JsonHelper.getString(jsonObject, "drop_rule", dropRule).toUpperCase();
+			String jsonDropRule = GsonHelper.getAsString(jsonObject, "drop_rule", dropRule).toUpperCase();
 
 			if (DropRule.has(jsonDropRule)) {
 				dropRule = jsonDropRule;
 			}
-			JsonArray jsonValidatorPredicates = JsonHelper.getArray(jsonObject, "validator_predicates", new JsonArray());
+			JsonArray jsonValidatorPredicates = GsonHelper.getAsJsonArray(jsonObject, "validator_predicates", new JsonArray());
 
 			if (jsonValidatorPredicates != null) {
 
@@ -222,7 +222,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 				}
 			}
 
-			JsonArray jsonTooltipPredicates = JsonHelper.getArray(jsonObject, "tooltip_predicates", new JsonArray());
+			JsonArray jsonTooltipPredicates = GsonHelper.getAsJsonArray(jsonObject, "tooltip_predicates", new JsonArray());
 
 			if (jsonTooltipPredicates != null) {
 
@@ -235,7 +235,7 @@ public class SlotLoader extends SinglePreparationResourceReloader<Map<String, Gr
 				}
 			}
 
-			this.iconItem = JsonHelper.getString(jsonObject, "icon_item", "minecraft:iron_chestplate");
+			this.iconItem = GsonHelper.getAsString(jsonObject, "icon_item", "minecraft:iron_chestplate");
 		}
 	}
 }

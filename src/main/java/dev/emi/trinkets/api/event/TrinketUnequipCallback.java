@@ -4,8 +4,8 @@ import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.Trinket;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 
 public interface TrinketUnequipCallback {
 	Event<TrinketUnequipCallback> EVENT = EventFactory.createArrayBacked(TrinketUnequipCallback.class,

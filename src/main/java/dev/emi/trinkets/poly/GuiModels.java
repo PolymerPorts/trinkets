@@ -9,14 +9,13 @@ import eu.pb4.polymer.resourcepack.extras.api.format.item.model.ItemModel;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.GuiLight;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 public class GuiModels {
     private static final Set<Identifier> MODELS = new HashSet<>();
@@ -58,7 +57,7 @@ public class GuiModels {
             polymerRPBuilder.addData("assets/trinkets/models/gui/polybuttons/filler.json", ModelAsset.builder()
                     .guiLight(GuiLight.FRONT)
                     .texture("texture", "trinkets:gui/polybuttons/filler")
-                    .element(new Vec3d(-1,-1,-1), new Vec3d(17,17,17), b -> Arrays.stream(Direction.values())
+                    .element(new Vec3(-1,-1,-1), new Vec3(17,17,17), b -> Arrays.stream(Direction.values())
                             .forEach(d -> b.face(d, 0, 0,16, 16,"texture")))
                     .build()
             );

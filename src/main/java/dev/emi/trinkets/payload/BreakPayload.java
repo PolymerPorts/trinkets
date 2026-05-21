@@ -1,27 +1,27 @@
 package dev.emi.trinkets.payload;
 
 import dev.emi.trinkets.TrinketsNetwork;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 
-public record BreakPayload(int entityId, String group, String slot, int index) implements CustomPayload {
-	public static final PacketCodec<RegistryByteBuf, BreakPayload> CODEC = PacketCodec.tuple(
-			PacketCodecs.VAR_INT,
+public record BreakPayload(int entityId, String group, String slot, int index) implements CustomPacketPayload {
+	public static final StreamCodec<RegistryFriendlyByteBuf, BreakPayload> CODEC = StreamCodec.composite(
+			ByteBufCodecs.VAR_INT,
 			BreakPayload::entityId,
-			PacketCodecs.STRING,
+			ByteBufCodecs.STRING_UTF8,
 			BreakPayload::group,
-			PacketCodecs.STRING,
+			ByteBufCodecs.STRING_UTF8,
 			BreakPayload::slot,
-			PacketCodecs.VAR_INT,
+			ByteBufCodecs.VAR_INT,
 			BreakPayload::index,
 			BreakPayload::new
 	);
 
 	@Override
-	public Id<? extends CustomPayload> getId() {
+	public Type<? extends CustomPacketPayload> type() {
 		return TrinketsNetwork.BREAK;
 	}
 }

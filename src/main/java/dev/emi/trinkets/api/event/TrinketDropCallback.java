@@ -4,8 +4,8 @@ import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketEnums.DropRule;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 
 public interface TrinketDropCallback {
 	Event<TrinketDropCallback> EVENT = EventFactory.createArrayBacked(TrinketDropCallback.class,

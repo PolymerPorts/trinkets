@@ -3,42 +3,39 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.serialization.Codec;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
-public class TrinketInventory implements Inventory {
-	private static final Codec<Collection<EntityAttributeModifier>> ENTITY_ATTRIBUTE_MODIFIERS_CODEC = EntityAttributeModifier.CODEC.listOf().xmap(Function.identity(), List::copyOf);
+public class TrinketInventory implements Container {
+	private static final Codec<Collection<AttributeModifier>> ENTITY_ATTRIBUTE_MODIFIERS_CODEC = AttributeModifier.CODEC.listOf().xmap(Function.identity(), List::copyOf);
 
 	private final SlotType slotType;
 	private final int baseSize;
 	private final TrinketComponent component;
-	private final Map<Identifier, EntityAttributeModifier> modifiers = new HashMap<>();
-	private final Set<EntityAttributeModifier> persistentModifiers = new HashSet<>();
-	private final Set<EntityAttributeModifier> cachedModifiers = new HashSet<>();
-	private final Multimap<EntityAttributeModifier.Operation, EntityAttributeModifier> modifiersByOperation = HashMultimap.create();
+	private final Map<Identifier, AttributeModifier> modifiers = new HashMap<>();
+	private final Set<AttributeModifier> persistentModifiers = new HashSet<>();
+	private final Set<AttributeModifier> cachedModifiers = new HashSet<>();
+	private final Multimap<AttributeModifier.Operation, AttributeModifier> modifiersByOperation = HashMultimap.create();
 	private final Consumer<TrinketInventory> updateCallback;
 
-	private DefaultedList<ItemStack> stacks;
+	private NonNullList<ItemStack> stacks;
 	private boolean update = false;
 
 	public TrinketInventory(SlotType slotType, TrinketComponent comp, Consumer<TrinketInventory> updateCallback) {
 		this.component = comp;
 		this.slotType = slotType;
 		this.baseSize = slotType.getAmount();
-		this.stacks = DefaultedList.ofSize(this.baseSize, ItemStack.EMPTY);
+		this.stacks = NonNullList.withSize(this.baseSize, ItemStack.EMPTY);
 		this.updateCallback = updateCallback;
 	}
 
@@ -51,21 +48,21 @@ public class TrinketInventory implements Inventory {
 	}
 
 	@Override
-	public void clear() {
-		for (int i = 0; i < this.size(); i++) {
+	public void clearContent() {
+		for (int i = 0; i < this.getContainerSize(); i++) {
 			stacks.set(i, ItemStack.EMPTY);
 		}
 	}
 
 	@Override
-	public int size() {
+	public int getContainerSize() {
 		this.update();
 		return this.stacks.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		for (int i = 0; i < this.size(); i++) {
+		for (int i = 0; i < this.getContainerSize(); i++) {
 			if (!stacks.get(i).isEmpty()) {
 				return false;
 			}
@@ -74,29 +71,29 @@ public class TrinketInventory implements Inventory {
 	}
 
 	@Override
-	public ItemStack getStack(int slot) {
+	public ItemStack getItem(int slot) {
 		this.update();
 		return stacks.get(slot);
 	}
 
 	@Override
-	public ItemStack removeStack(int slot, int amount) {
-		return Inventories.splitStack(stacks, slot, amount);
+	public ItemStack removeItem(int slot, int amount) {
+		return ContainerHelper.removeItem(stacks, slot, amount);
 	}
 
 	@Override
-	public ItemStack removeStack(int slot) {
-		return Inventories.removeStack(stacks, slot);
+	public ItemStack removeItemNoUpdate(int slot) {
+		return ContainerHelper.takeItem(stacks, slot);
 	}
 
 	@Override
-	public void setStack(int slot, ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		this.update();
 		stacks.set(slot, stack);
 	}
 
 	@Override
-	public void markDirty() {
+	public void setChanged() {
 		// NO-OP
 	}
 
@@ -106,31 +103,31 @@ public class TrinketInventory implements Inventory {
 	}
 
 	@Override
-	public boolean canPlayerUse(PlayerEntity player) {
+	public boolean stillValid(Player player) {
 		return true;
 	}
 
-	public Map<Identifier, EntityAttributeModifier> getModifiers() {
+	public Map<Identifier, AttributeModifier> getModifiers() {
 		return this.modifiers;
 	}
 
-	public Collection<EntityAttributeModifier> getModifiersByOperation(EntityAttributeModifier.Operation operation) {
+	public Collection<AttributeModifier> getModifiersByOperation(AttributeModifier.Operation operation) {
 		return this.modifiersByOperation.get(operation);
 	}
 
-	public void addModifier(EntityAttributeModifier modifier) {
+	public void addModifier(AttributeModifier modifier) {
 		this.modifiers.put(modifier.id(), modifier);
 		this.getModifiersByOperation(modifier.operation()).add(modifier);
 		this.markUpdate();
 	}
 
-	public void addPersistentModifier(EntityAttributeModifier modifier) {
+	public void addPersistentModifier(AttributeModifier modifier) {
 		this.addModifier(modifier);
 		this.persistentModifiers.add(modifier);
 	}
 
 	public void removeModifier(Identifier identifier) {
-		EntityAttributeModifier modifier = this.modifiers.remove(identifier);
+		AttributeModifier modifier = this.modifiers.remove(identifier);
 		if (modifier != null) {
 			this.persistentModifiers.remove(modifier);
 			this.getModifiersByOperation(modifier.operation()).remove(modifier);
@@ -146,12 +143,12 @@ public class TrinketInventory implements Inventory {
 		}
 	}
 
-	public void removeCachedModifier(EntityAttributeModifier attributeModifier) {
+	public void removeCachedModifier(AttributeModifier attributeModifier) {
 		this.cachedModifiers.remove(attributeModifier);
 	}
 
 	public void clearCachedModifiers() {
-		for (EntityAttributeModifier cachedModifier : this.cachedModifiers) {
+		for (AttributeModifier cachedModifier : this.cachedModifiers) {
 			this.removeModifier(cachedModifier.id());
 		}
 		this.cachedModifiers.clear();
@@ -161,29 +158,29 @@ public class TrinketInventory implements Inventory {
 		if (this.update) {
 			this.update = false;
 			double baseSize = this.baseSize;
-			for (EntityAttributeModifier mod : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADD_VALUE)) {
-				baseSize += mod.value();
+			for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_VALUE)) {
+				baseSize += mod.amount();
 			}
 
 			double size = baseSize;
-			for (EntityAttributeModifier mod : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
-				size += this.baseSize * mod.value();
+			for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
+				size += this.baseSize * mod.amount();
 			}
 
-			for (EntityAttributeModifier mod : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
-				size *= mod.value();
+			for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
+				size *= mod.amount();
 			}
 			LivingEntity entity = this.component.getEntity();
 
-			if (size != this.size()) {
-				DefaultedList<ItemStack> newStacks = DefaultedList.ofSize((int) size, ItemStack.EMPTY);
+			if (size != this.getContainerSize()) {
+				NonNullList<ItemStack> newStacks = NonNullList.withSize((int) size, ItemStack.EMPTY);
 				for (int i = 0; i < this.stacks.size(); i++) {
 					ItemStack stack = this.stacks.get(i);
 					if (i < newStacks.size()) {
 						newStacks.set(i, stack);
 					} else {
-						if (entity.getEntityWorld() instanceof ServerWorld serverWorld) {
-							entity.dropStack(serverWorld, stack);
+						if (entity.level() instanceof ServerLevel serverWorld) {
+							entity.spawnAtLocation(serverWorld, stack);
 						}
 					}
 				}
@@ -198,7 +195,7 @@ public class TrinketInventory implements Inventory {
 		this.modifiersByOperation.clear();
 		this.persistentModifiers.clear();
 		other.modifiers.forEach((uuid, modifier) -> this.addModifier(modifier));
-		for (EntityAttributeModifier persistentModifier : other.persistentModifiers) {
+		for (AttributeModifier persistentModifier : other.persistentModifiers) {
 			this.addPersistentModifier(persistentModifier);
 		}
 		this.update();
@@ -225,7 +222,7 @@ public class TrinketInventory implements Inventory {
 	}
 
 	public TrinketSaveData.Metadata toMetadata() {
-		List<EntityAttributeModifier> cachedModifiers = new ArrayList<>();
+		List<AttributeModifier> cachedModifiers = new ArrayList<>();
 
 		if (!this.modifiers.isEmpty()) {
 			this.modifiers.forEach((uuid, modifier) -> {
@@ -241,7 +238,7 @@ public class TrinketInventory implements Inventory {
 		tag.persistentModifiers().forEach(this::addPersistentModifier);
 
 		if (!tag.cachedModifiers().isEmpty()) {
-			for (EntityAttributeModifier modifier : tag.cachedModifiers()) {
+			for (AttributeModifier modifier : tag.cachedModifiers()) {
 				this.cachedModifiers.add(modifier);
 				this.addModifier(modifier);
 			}
