@@ -1,4 +1,5 @@
-
+# No longer supported!
+This project is replaced with a Polymer Patch: https://github.com/PolymerPorts/trinkets-patch
 
 # Trinkets
 A data-driven accessory mod for Minecraft using Fabric.
